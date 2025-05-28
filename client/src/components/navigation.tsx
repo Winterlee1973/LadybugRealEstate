@@ -26,15 +26,17 @@ export default function Navigation() {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center h-16 justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Bug className="h-8 w-8 text-ladybug" />
-            <span className="text-xl font-bold text-dark-gray">ladybug.com</span>
-          </Link>
+          <div className="flex-1 flex justify-start">
+            <Link href="/" className="flex items-center space-x-2">
+              <Bug className="h-8 w-8 text-ladybug" />
+              <span className="text-xl font-bold text-dark-gray">ladybug.com</span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="flex-1 hidden md:flex justify-center items-center space-x-8">
             {navigationLinks.map((link) => (
               <Link
                 key={link.href}
@@ -49,51 +51,55 @@ export default function Navigation() {
           </div>
 
           {/* Auth Section */}
-          <div className="hidden md:flex items-center space-x-4">
-            {loading ? (
-              <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full" />
-            ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
-                      <AvatarFallback>
-                        {user.email?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+          <div className="flex-1 hidden md:flex justify-end">
+            <div className="flex items-center space-x-4">
+              {loading ? (
+                <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full" />
+              ) : user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                        <AvatarFallback>
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuItem className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.email}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.user_metadata?.full_name || 'User'}
+                        </p>
+                      </div>
+                    </DropdownMenuItem>
+                    <Link href="/profile">
+                      <DropdownMenuItem>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuItem>
+                      <Heart className="mr-2 h-4 w-4" />
+                      <span>Favorites</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <AuthModal>
+                  <Button className="ladybug-primary">
+                    Login
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuItem className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.email}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.user_metadata?.full_name || 'User'}
-                      </p>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Heart className="mr-2 h-4 w-4" />
-                    <span>Favorites</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <AuthModal>
-                <Button className="ladybug-primary">
-                  Login
-                </Button>
-              </AuthModal>
-            )}
+                </AuthModal>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu */}
@@ -104,7 +110,7 @@ export default function Navigation() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-64">
-              <div className="flex flex-col space-y-4 mt-8">
+              <div className="flex flex-col items-center space-y-4 mt-8">
                 {navigationLinks.map((link) => (
                   <Link
                     key={link.href}

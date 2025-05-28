@@ -12,6 +12,7 @@ import PropertyDetail from "@/pages/property-detail";
 import NotFound from "@/pages/not-found";
 import SellYourHome from "@/pages/sell-your-home";
 import HowItWorks from "@/pages/how-it-works";
+import ProfilePage from "@/pages/profile";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/property/:propertyId" component={PropertyDetail} />
           <Route path="/sell-your-home" component={SellYourHome} />
           <Route path="/how-it-works" component={HowItWorks} />
+          <Route path="/profile" component={ProfilePage} />
           <Route component={NotFound} />
         </Switch>
       </main>
