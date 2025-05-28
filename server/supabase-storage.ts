@@ -96,7 +96,6 @@ export class SupabaseStorage implements IStorage {
     userId?: string;
   }): Promise<Property[]> {
     try {
-      let queryBuilder = db.select().from(properties);
       const conditions = [];
 
       if (query.priceMin) {
@@ -127,11 +126,13 @@ export class SupabaseStorage implements IStorage {
         conditions.push(eq(properties.userId, query.userId));
       }
 
+      let result;
       if (conditions.length > 0) {
-        queryBuilder = queryBuilder.where(and(...conditions));
+        result = await db.select().from(properties).where(and(...conditions));
+      } else {
+        result = await db.select().from(properties);
       }
 
-      const result = await queryBuilder;
       return result;
     } catch (error) {
       console.error('Failed to search properties:', error);
