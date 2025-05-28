@@ -14,11 +14,9 @@ export default function Navigation() {
   const { user, signOut, loading } = useAuth();
 
   const navigationLinks = [
-    { href: "/properties", label: "Buy" },
-    { href: "#rent", label: "Rent" },
-    { href: "#sell", label: "Sell" },
-    { href: "#loans", label: "Home Loans" },
-    { href: "#agents", label: "Agent Finder" },
+    { href: "/", label: "Find A Home" },
+    { href: "/sell-your-home", label: "Sell Your Home" },
+    { href: "/how-it-works", label: "How It Works" },
   ];
 
   const handleSignOut = async () => {
@@ -41,7 +39,9 @@ export default function Navigation() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-dark-gray hover:text-ladybug transition-colors font-medium"
+                className={`text-dark-gray hover:text-ladybug transition-colors font-medium ${
+                  location === link.href ? "underline underline-offset-4" : ""
+                }`}
               >
                 {link.label}
               </Link>
@@ -109,7 +109,9 @@ export default function Navigation() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="text-dark-gray hover:text-ladybug transition-colors font-medium py-2"
+                    className={`text-dark-gray hover:text-ladybug transition-colors font-medium py-2 ${
+                      location === link.href ? "underline underline-offset-4" : ""
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.label}

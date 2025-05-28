@@ -10,17 +10,8 @@ export default function Landing() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = () => {
-    if (searchQuery.trim()) {
-      // If it looks like a property ID, go directly to property detail
-      if (searchQuery.match(/^[A-Z]{2,}\d+$/i)) {
-        setLocation(`/property/${searchQuery.trim().toUpperCase()}`);
-      } else {
-        // Otherwise go to listings with search
-        setLocation(`/properties?q=${encodeURIComponent(searchQuery.trim())}`);
-      }
-    } else {
-      setLocation("/properties");
-    }
+    // Always redirect to the specific property detail page
+    setLocation("/property/LBG12345");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -111,10 +102,7 @@ export default function Landing() {
 
           <div className="mt-12">
             <p className="text-medium-gray">
-              Looking to buy or rent?{" "}
-              <Link href="/properties" className="text-ladybug hover:text-[hsl(var(--ladybug-dark))] font-medium">
-                Click here to search properties.
-              </Link>
+              Looking to buy or rent?
             </p>
           </div>
         </div>

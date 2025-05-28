@@ -10,6 +10,8 @@ import Landing from "@/pages/landing";
 import PropertyListings from "@/pages/property-listings";
 import PropertyDetail from "@/pages/property-detail";
 import NotFound from "@/pages/not-found";
+import SellYourHome from "@/pages/sell-your-home";
+import HowItWorks from "@/pages/how-it-works";
 
 function Router() {
   return (
@@ -20,6 +22,8 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/properties" component={PropertyListings} />
           <Route path="/property/:propertyId" component={PropertyDetail} />
+          <Route path="/sell-your-home" component={SellYourHome} />
+          <Route path="/how-it-works" component={HowItWorks} />
           <Route component={NotFound} />
         </Switch>
       </main>
