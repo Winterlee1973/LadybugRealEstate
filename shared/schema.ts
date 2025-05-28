@@ -29,6 +29,7 @@ export const properties = pgTable("properties", {
   agentPhoto: text("agent_photo"),
   agentRating: decimal("agent_rating", { precision: 2, scale: 1 }),
   agentReviews: integer("agent_reviews"),
+  userId: text("user_id"), // Link to Supabase auth user
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
