@@ -1,0 +1,142 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { insertInquirySchema } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Get all properties
+  app.get("/api/properties", async (req, res) => {
+    try {
+      const { priceMin, priceMax, bedrooms, bathrooms, city, propertyType } = req.query;
+      
+      const searchQuery = {
+        ...(priceMin && { priceMin: parseInt(priceMin as string) }),
+        ...(priceMax && { priceMax: parseInt(priceMax as string) }),
+        ...(bedrooms && { bedrooms: parseInt(bedrooms as string) }),
+        ...(bathrooms && { bathrooms: parseFloat(bathrooms as string) }),
+        ...(city && { city: city as string }),
+        ...(propertyType && { propertyType: propertyType as string }),
+      };
+
+      const properties = Object.keys(searchQuery).length > 0 
+        ? await storage.searchProperties(searchQuery)
+        : await storage.getProperties();
+
+      res.json(properties);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch properties" });
+    }
+  });
+
+  // Get property by property ID
+  app.get("/api/properties/:propertyId", async (req, res) => {
+    try {
+      const { propertyId } = req.params;
+      const property = await storage.getProperty(propertyId);
+      
+      if (!property) {
+        return res.status(404).json({ message: "Property not found" });
+      }
+      
+      res.json(property);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch property" });
+    }
+  });
+
+  // Search properties by property ID or address
+  app.get("/api/search", async (req, res) => {
+    try {
+      const { q } = req.query;
+      
+      if (!q) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      const query = q as string;
+      const properties = await storage.getProperties();
+      
+      // Search by property ID or address
+      const results = properties.filter(property => 
+        property.propertyId.toLowerCase().includes(query.toLowerCase()) ||
+        property.address.toLowerCase().includes(query.toLowerCase()) ||
+        property.city.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Search failed" });
+    }
+  });
+
+  // Create inquiry
+  app.post("/api/inquiries", async (req, res) => {
+    try {
+      const validatedData = insertInquirySchema.parse(req.body);
+      const inquiry = await storage.createInquiry(validatedData);
+      res.status(201).json(inquiry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid inquiry data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create inquiry" });
+    }
+  });
+
+  // Get inquiries for a property
+  app.get("/api/inquiries/:propertyId", async (req, res) => {
+    try {
+      const { propertyId } = req.params;
+      const inquiries = await storage.getInquiries(propertyId);
+      res.json(inquiries);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inquiries" });
+    }
+  });
+
+  // Add/remove favorites
+  app.post("/api/favorites", async (req, res) => {
+    try {
+      const { propertyId, userId } = req.body;
+      
+      if (!propertyId || !userId) {
+        return res.status(400).json({ message: "Property ID and User ID are required" });
+      }
+      
+      const favorite = await storage.addFavorite({ propertyId, userId });
+      res.status(201).json(favorite);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add favorite" });
+    }
+  });
+
+  app.delete("/api/favorites/:propertyId/:userId", async (req, res) => {
+    try {
+      const { propertyId, userId } = req.params;
+      const success = await storage.removeFavorite(propertyId, userId);
+      
+      if (success) {
+        res.status(204).send();
+      } else {
+        res.status(404).json({ message: "Favorite not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove favorite" });
+    }
+  });
+
+  // Get user favorites
+  app.get("/api/favorites/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const favorites = await storage.getFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
