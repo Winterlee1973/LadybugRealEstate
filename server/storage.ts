@@ -334,4 +334,29 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Try to use Supabase storage, fallback to memory storage if connection fails
+let storage: IStorage;
+
+async function initializeStorage(): Promise<IStorage> {
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL !== 'postgresql://placeholder') {
+    try {
+      const { SupabaseStorage } = await import('./supabase-storage');
+      const supabaseStorage = new SupabaseStorage();
+      
+      // Test the connection
+      await supabaseStorage.getProperties();
+      console.log('✅ Connected to Supabase database');
+      return supabaseStorage;
+    } catch (error) {
+      console.log('⚠️ Supabase connection failed, using in-memory storage:', error.message);
+    }
+  }
+  
+  console.log('📝 Using in-memory storage for development');
+  return new MemStorage();
+}
+
+// Initialize storage
+storage = await initializeStorage();
+
+export { storage };
