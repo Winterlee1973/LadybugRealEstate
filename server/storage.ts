@@ -101,12 +101,23 @@ export class SupabaseStorage implements IStorage {
 
   async getProfile(userId: string): Promise<Profile | undefined> {
     const result = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
-    return result[0];
+    if (result[0]) {
+      return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+    }
+    return undefined;
   }
 
   async createProfile(insertProfile: InsertProfile): Promise<Profile> {
     const result = await db.insert(profiles).values(insertProfile).returning();
-    return result[0];
+    return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+  }
+
+  async updateProfileRole(userId: string, role: 'buyer' | 'seller'): Promise<Profile | undefined> {
+    const result = await db.update(profiles).set({ role }).where(eq(profiles.id, userId)).returning();
+    if (result[0]) {
+      return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+    }
+    return undefined;
   }
 
   async getFavorites(userId: string): Promise<Favorite[]> {
