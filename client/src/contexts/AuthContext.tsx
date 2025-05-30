@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  role: "buyer" | "seller" | null; // Add role to context type
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
@@ -19,16 +20,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<"buyer" | "seller" | null>(null); // Add role state
 
-  // Function to ensure user profile exists
+  // Function to ensure user profile exists and fetch role
   const ensureUserProfile = async (userId: string) => {
     try {
       const response = await fetch(`/api/profile/${userId}`);
       if (response.ok) {
-        // Profile exists
-        console.log(`Profile already exists for user ${userId}`);
+        // Profile exists, fetch and set role
+        const data = await response.json();
+        setRole(data.role);
+        console.log(`Profile exists and role fetched for user ${userId}`);
       } else if (response.status === 404) {
-        // Profile does not exist, create it
+        // Profile does not exist, create it with default role 'buyer'
         console.log(`Profile not found for user ${userId}, creating...`);
         const createResponse = await fetch('/api/profile', {
           method: 'POST',
@@ -38,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ id: userId, role: 'buyer' }),
         });
         if (createResponse.ok) {
+          setRole('buyer'); // Set default role after creation
           console.log(`Profile created for user ${userId}`);
         } else {
           console.error(`Failed to create profile for user ${userId}:`, await createResponse.text());
@@ -55,8 +60,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setLoading(false);
+      if (currentUser) {
+        ensureUserProfile(currentUser.id);
+      }
     });
 
     // Listen for auth changes
@@ -67,9 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(currentUser);
         setLoading(false);
 
-        // Ensure user profile exists
+        // Ensure user profile exists and fetch role on auth change
         if (currentUser) {
           ensureUserProfile(currentUser.id);
+        } else {
+          setRole(null); // Clear role on sign out
         }
       }
     );
@@ -117,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
+    role, // Include role in the context value
     signIn,
     signUp,
     signOut,

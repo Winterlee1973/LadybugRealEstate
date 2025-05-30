@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch"; // Import Switch component
+import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Import RadioGroup components
 import { useToast } from "@/hooks/use-toast";
 import type { Profile } from "@shared/schema"; // Import Profile type
 
@@ -80,8 +81,7 @@ export default function ProfilePage() {
     setLoading(false);
   };
 
-  const handleRoleChange = async (checked: boolean) => {
-    const newRole = checked ? "seller" : "buyer";
+  const handleRoleChange = async (newRole: "buyer" | "seller") => {
     const originalRole = role; // Store the current role
     setLoading(true);
     try {
@@ -115,7 +115,25 @@ export default function ProfilePage() {
     }
   };
 
-  if (profileLoading) {
+ // Function to format phone number as (XXX) XXX-XXXX
+ const formatPhoneNumber = (value: string) => {
+   // Remove all non-digit characters
+   const digits = value.replace(/\D/g, '');
+
+   // Apply formatting based on the number of digits
+   if (digits.length <= 3) {
+     return digits;
+   } else if (digits.length <= 6) {
+     return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+   } else if (digits.length <= 10) {
+     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+   } else {
+     // Truncate to 10 digits and format
+     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+   }
+ };
+
+ if (profileLoading) {
     return (
       <div className="container mx-auto py-8 text-center">
         <p>Loading profile...</p>
@@ -171,20 +189,29 @@ export default function ProfilePage() {
                 id="phoneNumber"
                 type="tel"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="123-456-7890"
+                onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
+                placeholder="(123) 456-7890"
               />
             </div>
 
-            {/* Role Toggle */}
-            <div className="flex items-center justify-between space-x-2">
-              <Label htmlFor="role-toggle">I am a Seller</Label>
-              <Switch
-                id="role-toggle"
-                checked={role === "seller"}
-                onCheckedChange={handleRoleChange}
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <Label>Select Your Role</Label>
+              <RadioGroup
+                value={role}
+                onValueChange={handleRoleChange}
+                className="flex space-x-4"
                 disabled={loading}
-              />
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="buyer" id="role-buyer" />
+                  <Label htmlFor="role-buyer">Buyer</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="seller" id="role-seller" />
+                  <Label htmlFor="role-seller">Seller</Label>
+                </div>
+              </RadioGroup>
             </div>
 
             <Button type="submit" className="ladybug-primary w-full" disabled={loading}>
