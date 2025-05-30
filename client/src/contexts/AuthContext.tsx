@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { storage } from '../../../server/storage'; // Import storage
 
 interface AuthContextType {
   user: User | null;
@@ -21,6 +20,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Function to ensure user profile exists
+  const ensureUserProfile = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/profile/${userId}`);
+      if (response.ok) {
+        // Profile exists
+        console.log(`Profile already exists for user ${userId}`);
+      } else if (response.status === 404) {
+        // Profile does not exist, create it
+        console.log(`Profile not found for user ${userId}, creating...`);
+        const createResponse = await fetch('/api/profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: userId, role: 'buyer' }),
+        });
+        if (createResponse.ok) {
+          console.log(`Profile created for user ${userId}`);
+        } else {
+          console.error(`Failed to create profile for user ${userId}:`, await createResponse.text());
+        }
+      } else {
+        // Other error
+        console.error(`Error checking profile for user ${userId}:`, await response.text());
+      }
+    } catch (error) {
+      console.error(`Exception when ensuring profile for user ${userId}:`, error);
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,17 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(currentUser);
         setLoading(false);
 
-        // Check if profile exists and create one if not
+        // Ensure user profile exists
         if (currentUser) {
-          try {
-            const profile = await storage.getProfile(currentUser.id);
-            if (!profile) {
-              await storage.createProfile({ id: currentUser.id as string, role: 'buyer' });
-              console.log(`Profile created for user ${currentUser.id}`);
-            }
-          } catch (profileError) {
-            console.error("Error checking/creating user profile:", profileError);
-          }
+          ensureUserProfile(currentUser.id);
         }
       }
     );
@@ -70,14 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!error && data.user) {
-      // Create a profile entry for the new user with a default role
-      try {
-        await storage.createProfile({ id: data.user.id as string, role: 'buyer' });
-      } catch (profileError) {
-        console.error("Error creating user profile:", profileError);
-        // Optionally handle this error, e.g., by deleting the Supabase auth user
-        // if profile creation fails, to keep data consistent.
-      }
+      // Ensure user profile exists
+      ensureUserProfile(data.user.id);
     }
     return { error };
   };

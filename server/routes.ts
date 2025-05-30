@@ -34,6 +34,33 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Create user profile
+  app.post("/api/profile", async (req, res) => {
+    try {
+      const { id, role } = req.body;
+
+      if (!id || !role) {
+        return res.status(400).json({ message: "User ID (id) and role are required" });
+      }
+      // Basic role validation, can be expanded
+      if (role !== 'buyer' && role !== 'seller' && role !== 'agent') {
+        return res.status(400).json({ message: "Invalid role. Must be 'buyer', 'seller', or 'agent'." });
+      }
+
+      const profile = await storage.createProfile({ id, role });
+      res.status(201).json(profile);
+    } catch (error: any) {
+      log(`Error creating profile: ${error.message}`);
+      // Check for unique constraint violation (specific error code/message depends on ORM/DB)
+      // For Prisma, P2002 is the unique constraint violation code
+      if (error.code === 'P2002' || (error.message && error.message.toLowerCase().includes("unique constraint failed"))) {
+        return res.status(409).json({ message: "Profile already exists." });
+      }
+      // Generic server error
+      res.status(500).json({ message: "Failed to create profile" });
+    }
+  });
+
   // Get property by property ID
   app.get("/api/properties/:propertyId", async (req, res) => {
     try {
