@@ -1,10 +1,15 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+// Remove createServer and type Server import
 import { storage } from "./storage";
 import { insertInquirySchema } from "@shared/schema";
 import { z } from "zod";
+import { log } from "./vite";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+// Modify function signature and remove server creation
+export async function registerRoutes(app: Express): Promise<void> {
+  log("Registering routes...");
+  log(`Storage object available: ${!!storage}`);
+
   // Get all properties
   app.get("/api/properties", async (req, res) => {
     try {
@@ -138,6 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user profile
+  log("Defining profile routes..."); // Log before profile routes
   app.get("/api/profile/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
@@ -179,7 +185,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // Remove server creation
+  // const httpServer = createServer(app);
+  // return httpServer;
 }
 

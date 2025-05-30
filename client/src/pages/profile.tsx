@@ -82,6 +82,7 @@ export default function ProfilePage() {
 
   const handleRoleChange = async (checked: boolean) => {
     const newRole = checked ? "seller" : "buyer";
+    const originalRole = role; // Store the current role
     setLoading(true);
     try {
       const response = await fetch(`/api/profile/${user?.id}/role`, {
@@ -103,6 +104,7 @@ export default function ProfilePage() {
       });
     } catch (error) {
       console.error("Error updating role:", error);
+      setRole(originalRole); // Revert to original role on error
       toast({
         title: "Error",
         description: "Failed to update role. Please try again.",

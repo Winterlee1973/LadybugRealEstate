@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http"; // Import createServer
 
 const app = express();
 app.use(express.json());
@@ -36,8 +37,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Removed top-level await
+
 (async () => {
-  const server = await registerRoutes(app);
+  await registerRoutes(app); // Register routes on the app
+
+  const server = createServer(app); // Create the server using the app with registered routes
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

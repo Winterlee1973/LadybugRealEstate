@@ -33,8 +33,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
         setLoading(false);
+
+        // Check if profile exists and create one if not
+        if (currentUser) {
+          try {
+            const profile = await storage.getProfile(currentUser.id);
+            if (!profile) {
+              await storage.createProfile({ id: currentUser.id as string, role: 'buyer' });
+              console.log(`Profile created for user ${currentUser.id}`);
+            }
+          } catch (profileError) {
+            console.error("Error checking/creating user profile:", profileError);
+          }
+        }
       }
     );
 
