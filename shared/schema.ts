@@ -1,6 +1,12 @@
-import { pgTable, text, serial, integer, boolean, decimal, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, decimal, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+export const profiles = pgTable("profiles", {
+  id: uuid("id").primaryKey(), // Use uuid type
+  role: text("role").notNull().default('buyer'), // 'buyer' or 'seller'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
 
 export const properties = pgTable("properties", {
   id: serial("id").primaryKey(),
@@ -29,7 +35,7 @@ export const properties = pgTable("properties", {
   agentPhoto: text("agent_photo"),
   agentRating: decimal("agent_rating", { precision: 2, scale: 1 }),
   agentReviews: integer("agent_reviews"),
-  userId: text("user_id"), // Link to Supabase auth user
+  userId: uuid("user_id").references(() => profiles.id), // Change to uuid and reference profiles.id
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -66,8 +72,14 @@ export const insertInquirySchema = createInsertSchema(inquiries).omit({
   createdAt: true,
 });
 
+export const insertProfileSchema = createInsertSchema(profiles).omit({
+  createdAt: true,
+});
+
 export type Property = typeof properties.$inferSelect;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
+export type Profile = typeof profiles.$inferSelect;
+export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Inquiry = typeof inquiries.$inferSelect;

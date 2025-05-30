@@ -180,7 +180,7 @@ export default function PropertyDetail() {
               <div className="relative">
                 <img
                   src={property.images[selectedImageIndex]}
-                  alt={property.title}
+                  alt={property.title ?? "Property Image"}
                   className="w-full h-96 object-cover rounded-xl"
                 />
 
@@ -214,7 +214,7 @@ export default function PropertyDetail() {
               {/* Thumbnail Gallery */}
               {property.images.length > 1 && (
                 <div className="grid grid-cols-5 gap-2 mt-4">
-                  {property.images.slice(0, 5).map((image, index) => (
+                  {property.images.slice(0, 5).map((image: string, index: number) => (
                     <img
                       key={index}
                       src={image}
@@ -266,7 +266,7 @@ export default function PropertyDetail() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-dark-gray mb-4">Key Features</h3>
                   <div className="grid md:grid-cols-2 gap-3">
-                    {property.features.map((feature, index) => (
+                    {property.features.map((feature: string, index: number) => (
                       <div key={index} className="flex items-center">
                         <Check className="h-4 w-4 text-ladybug mr-2" />
                         <span className="text-medium-gray">{feature}</span>
@@ -336,7 +336,7 @@ export default function PropertyDetail() {
                     <div className="w-16 h-16 mx-auto mb-3">
                       <img
                         src={property.agentPhoto || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150"}
-                        alt={property.agentName}
+                        alt={property.agentName ?? "Agent Photo"}
                         className="w-16 h-16 rounded-full object-cover"
                       />
                     </div>

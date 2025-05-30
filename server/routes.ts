@@ -140,3 +140,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
+// Update user profile role
+  // Update user profile role
+  app.put("/api/profile/:userId/role", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { role } = req.body;
+
+      if (!userId || !role) {
+        return res.status(400).json({ message: "User ID and role are required" });
+      }
+
+      if (role !== 'buyer' && role !== 'seller') {
+        return res.status(400).json({ message: "Invalid role. Must be 'buyer' or 'seller'." });
+      }
+
+      const updatedProfile = await storage.updateProfileRole(userId, role);
+
+      if (!updatedProfile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+
+      res.json(updatedProfile);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update profile role" });
+    }
+  });

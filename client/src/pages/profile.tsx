@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch"; // Import Switch component
 import { useToast } from "@/hooks/use-toast";
+import type { Profile } from "@shared/schema"; // Import Profile type
 
 export default function ProfilePage() {
   const { user, supabase } = useAuth();
@@ -14,7 +16,9 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState(user?.email || "");
+  const [role, setRole] = useState<"buyer" | "seller">("buyer"); // State for user role
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -22,8 +26,31 @@ export default function ProfilePage() {
       setLastName(user.user_metadata?.last_name || "");
       setPhoneNumber(user.user_metadata?.phone_number || "");
       setEmail(user.email || "");
+      fetchUserProfile();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user?.id) return;
+    setProfileLoading(true);
+    try {
+      const response = await fetch(`/api/profile/${user.id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+      const data: Profile = await response.json();
+      setRole(data.role);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load user profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,12 +80,53 @@ export default function ProfilePage() {
     setLoading(false);
   };
 
+  const handleRoleChange = async (checked: boolean) => {
+    const newRole = checked ? "seller" : "buyer";
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/profile/${user?.id}/role`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update role");
+      }
+
+      setRole(newRole);
+      toast({
+        title: "Role updated",
+        description: `Your role has been set to ${newRole}.`,
+      });
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update role. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (profileLoading) {
+    return (
+      <div className="container mx-auto py-8 text-center">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8">
       <Card className="max-w-lg mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Profile Settings</CardTitle>
-          <CardDescription>Manage your personal information.</CardDescription>
+          <CardDescription>Manage your personal information and role.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleUpdateProfile} className="space-y-4">
@@ -105,6 +173,18 @@ export default function ProfilePage() {
                 placeholder="123-456-7890"
               />
             </div>
+
+            {/* Role Toggle */}
+            <div className="flex items-center justify-between space-x-2">
+              <Label htmlFor="role-toggle">I am a Seller</Label>
+              <Switch
+                id="role-toggle"
+                checked={role === "seller"}
+                onCheckedChange={handleRoleChange}
+                disabled={loading}
+              />
+            </div>
+
             <Button type="submit" className="ladybug-primary w-full" disabled={loading}>
               {loading ? "Saving..." : "Save Changes"}
             </Button>

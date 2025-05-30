@@ -1,4 +1,4 @@
-import { properties, favorites, inquiries, type Property, type InsertProperty, type Favorite, type InsertFavorite, type Inquiry, type InsertInquiry } from "@shared/schema";
+import { properties, favorites, inquiries, profiles, type Property, type InsertProperty, type Favorite, type InsertFavorite, type Inquiry, type InsertInquiry, type Profile, type InsertProfile } from "@shared/schema";
 import { db } from './db';
 import { eq, gte, lte, ilike, and, sql } from 'drizzle-orm';
 
@@ -10,7 +10,7 @@ export interface IStorage {
   createProperty(property: InsertProperty): Promise<Property>;
   updateProperty(propertyId: string, updates: Partial<InsertProperty>): Promise<Property | undefined>;
   deleteProperty(propertyId: string): Promise<boolean>;
-  searchProperties(query: { 
+  searchProperties(query: {
     priceMin?: number;
     priceMax?: number;
     bedrooms?: number;
@@ -18,6 +18,10 @@ export interface IStorage {
     city?: string;
     propertyType?: string;
   }): Promise<Property[]>;
+
+  // Profiles
+  getProfile(userId: string): Promise<Profile | undefined>;
+  createProfile(profile: InsertProfile): Promise<Profile>;
 
   // Favorites
   getFavorites(userId: string): Promise<Favorite[]>;
@@ -93,6 +97,16 @@ export class SupabaseStorage implements IStorage {
 
     const result = await db.select().from(properties).where(and(...conditions));
     return result;
+  }
+
+  async getProfile(userId: string): Promise<Profile | undefined> {
+    const result = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
+    return result[0];
+  }
+
+  async createProfile(insertProfile: InsertProfile): Promise<Profile> {
+    const result = await db.insert(profiles).values(insertProfile).returning();
+    return result[0];
   }
 
   async getFavorites(userId: string): Promise<Favorite[]> {

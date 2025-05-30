@@ -26,9 +26,16 @@ CREATE TABLE "properties" (
 	"agent_photo" text,
 	"agent_rating" numeric(2, 1),
 	"agent_reviews" integer,
-	"user_id" text,
+	"user_id" uuid REFERENCES auth.users(id) ON DELETE SET NULL, -- Link to Supabase auth user
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "properties_property_id_unique" UNIQUE("property_id")
+);
+
+-- Create the profiles table to store user roles and other profile information
+CREATE TABLE "profiles" (
+    "id" uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    "role" text DEFAULT 'buyer' NOT NULL, -- 'buyer' or 'seller'
+    "created_at" timestamp DEFAULT now() NOT NULL
 );
 
 -- Create the favorites table

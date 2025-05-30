@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { storage } from '../../../server/storage'; // Import storage
 
 interface AuthContextType {
   user: User | null;
@@ -49,10 +50,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
+
+    if (!error && data.user) {
+      // Create a profile entry for the new user with a default role
+      try {
+        await storage.createProfile({ id: data.user.id as string, role: 'buyer' });
+      } catch (profileError) {
+        console.error("Error creating user profile:", profileError);
+        // Optionally handle this error, e.g., by deleting the Supabase auth user
+        // if profile creation fails, to keep data consistent.
+      }
+    }
     return { error };
   };
 
