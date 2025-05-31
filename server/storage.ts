@@ -112,6 +112,7 @@ export class SupabaseStorage implements IStorage {
     return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
   }
 
+
   async updateProfileRole(userId: string, role: 'buyer' | 'seller'): Promise<Profile | undefined> {
     const result = await db.update(profiles).set({ role }).where(eq(profiles.id, userId)).returning();
     if (result[0]) {

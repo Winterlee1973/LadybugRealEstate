@@ -89,6 +89,14 @@ export default function Navigation() {
                           <span>Profile</span>
                         </DropdownMenuItem>
                       </Link>
+                      {user && role === "seller" && (
+                        <Link href="/seller-admin">
+                          <DropdownMenuItem>
+                            <Tag className="mr-2 h-4 w-4" />
+                            <span>Seller Admin</span>
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
                       <DropdownMenuItem>
                         <Heart className="mr-2 h-4 w-4" />
                         <span>Favorites</span>
@@ -131,6 +139,17 @@ export default function Navigation() {
                     {link.label}
                   </Link>
                 ))}
+                {user && role === "seller" && (
+                  <Link
+                    href="/seller-admin"
+                    className={`text-dark-gray hover:text-ladybug transition-colors font-medium py-2 ${
+                      location === "/seller-admin" ? "underline underline-offset-4" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Seller Admin
+                  </Link>
+                )}
                 <Button className="ladybug-primary mt-4">
                   Login
                 </Button>

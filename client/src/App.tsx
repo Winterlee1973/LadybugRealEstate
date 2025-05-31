@@ -13,6 +13,7 @@ import NotFound from "@/pages/not-found";
 import SellYourHome from "@/pages/sell-your-home";
 import HowItWorks from "@/pages/how-it-works";
 import ProfilePage from "@/pages/profile";
+import SellerAdminPage from "@/pages/seller-admin";
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
           <Route path="/sell-your-home" component={SellYourHome} />
           <Route path="/how-it-works" component={HowItWorks} />
           <Route path="/profile" component={ProfilePage} />
+          <Route path="/seller-admin" component={SellerAdminPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

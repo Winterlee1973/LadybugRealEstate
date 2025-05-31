@@ -44,6 +44,7 @@ CREATE TABLE "properties" (
 	"agent_rating" numeric(2, 1),
 	"agent_reviews" integer,
 	"user_id" text,
+	"seller_id" uuid REFERENCES profiles(id) ON DELETE SET NULL, -- Link to seller profile
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "properties_property_id_unique" UNIQUE("property_id")
 );
