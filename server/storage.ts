@@ -101,11 +101,15 @@ export class SupabaseStorage implements IStorage {
   }
 
   async getProfile(userId: string): Promise<Profile | undefined> {
-    const result = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
-    if (result[0]) {
-      return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+    let result = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
+    
+    if (!result[0]) {
+      // If profile doesn't exist, create it with a default 'buyer' role
+      const newProfile = await this.createProfile({ id: userId, role: 'buyer' });
+      return { ...newProfile, role: newProfile.role as 'buyer' | 'seller' };
     }
-    return undefined;
+
+    return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
   }
 
   async createProfile(insertProfile: InsertProfile): Promise<Profile> {

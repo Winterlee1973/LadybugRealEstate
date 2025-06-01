@@ -89,7 +89,7 @@ export default function Navigation() {
                           <span>Profile</span>
                         </DropdownMenuItem>
                       </Link>
-                      {user && role === "seller" && (
+                      {user && (
                         <Link href="/seller-admin">
                           <DropdownMenuItem>
                             <Tag className="mr-2 h-4 w-4" />
@@ -139,7 +139,7 @@ export default function Navigation() {
                     {link.label}
                   </Link>
                 ))}
-                {user && role === "seller" && (
+                {user && (
                   <Link
                     href="/seller-admin"
                     className={`text-dark-gray hover:text-ladybug transition-colors font-medium py-2 ${
