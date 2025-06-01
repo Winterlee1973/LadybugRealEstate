@@ -1,6 +1,6 @@
 import { eq, and, ilike, gte, lte } from 'drizzle-orm';
 import { db } from './db';
-import { properties, favorites, inquiries, type Property, type InsertProperty, type Favorite, type InsertFavorite, type Inquiry, type InsertInquiry } from './db';
+import { properties, favorites, inquiries, profiles, type Property, type InsertProperty, type Favorite, type InsertFavorite, type Inquiry, type InsertInquiry, type Profile, type InsertProfile } from './db';
 import type { IStorage } from './storage';
 
 export class SupabaseStorage implements IStorage {
@@ -209,6 +209,34 @@ export class SupabaseStorage implements IStorage {
     } catch (error) {
       console.error('Failed to create inquiry:', error);
       throw new Error('Failed to create inquiry');
+    }
+  }
+  async getProfile(id: string): Promise<Profile | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.id, id))
+        .limit(1);
+      
+      return result[0];
+    } catch (error) {
+      console.error('Failed to get profile:', error);
+      return undefined;
+    }
+  }
+
+  async createProfile(profile: InsertProfile): Promise<Profile> {
+    try {
+      const result = await db
+        .insert(profiles)
+        .values(profile)
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Failed to create profile:', error);
+      throw new Error('Failed to create profile');
     }
   }
 }

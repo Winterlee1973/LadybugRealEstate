@@ -78,9 +78,7 @@ export const insertProfileSchema = createInsertSchema(profiles).omit({
 
 export type Property = typeof properties.$inferSelect;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
-export type Profile = typeof profiles.$inferSelect & {
-  role: 'buyer' | 'seller';
-};
+export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;

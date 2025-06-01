@@ -43,8 +43,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ message: "User ID (id) and role are required" });
       }
       // Basic role validation, can be expanded
-      if (role !== 'buyer' && role !== 'seller' && role !== 'agent') {
-        return res.status(400).json({ message: "Invalid role. Must be 'buyer', 'seller', or 'agent'." });
+      if (role !== 'buyer' && role !== 'seller') {
+        return res.status(400).json({ message: "Invalid role. Must be 'buyer' or 'seller'." });
       }
 
       const profile = await storage.createProfile({ id, role });
