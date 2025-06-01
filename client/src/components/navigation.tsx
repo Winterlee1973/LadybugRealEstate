@@ -57,11 +57,17 @@ export default function Navigation() {
               {loading ? (
                 <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full" />
               ) : user ? (
-                <> {/* Use a fragment to group elements */}
-                  {role && ( // Conditionally render role badge
+                <>
+                  {role && (
                     <Badge variant="secondary" className="text-xs">
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
+                      {role === "buyer" || role === "seller" ? role.charAt(0).toUpperCase() + role.slice(1) : 'User'}
                     </Badge>
+                  )}
+                  {user && role === "seller" && (
+                    <Link href="/seller-admin" className="flex items-center space-x-2 text-dark-gray hover:text-ladybug transition-colors font-medium">
+                      <Tag className="h-5 w-5" />
+                      <span>Seller Admin</span>
+                    </Link>
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -89,7 +95,7 @@ export default function Navigation() {
                           <span>Profile</span>
                         </DropdownMenuItem>
                       </Link>
-                      {user && (
+                      {user && role === "seller" && (
                         <Link href="/seller-admin">
                           <DropdownMenuItem>
                             <Tag className="mr-2 h-4 w-4" />
@@ -139,7 +145,7 @@ export default function Navigation() {
                     {link.label}
                   </Link>
                 ))}
-                {user && (
+                {user && role === "seller" && (
                   <Link
                     href="/seller-admin"
                     className={`text-dark-gray hover:text-ladybug transition-colors font-medium py-2 ${

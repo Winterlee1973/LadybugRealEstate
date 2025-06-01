@@ -101,29 +101,46 @@ export class SupabaseStorage implements IStorage {
   }
 
   async getProfile(userId: string): Promise<Profile | undefined> {
-    let result = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
-    
-    if (!result[0]) {
-      // If profile doesn't exist, create it with a default 'buyer' role
-      const newProfile = await this.createProfile({ id: userId, role: 'buyer' });
-      return { ...newProfile, role: newProfile.role as 'buyer' | 'seller' };
+    try {
+      let result = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
+      
+      if (!result[0]) {
+        console.log(`Profile not found for user ${userId}. Creating new profile with default 'buyer' role.`);
+        const newProfile = await this.createProfile({ id: userId, role: 'buyer' });
+        return { ...newProfile, role: newProfile.role as 'buyer' | 'seller' };
+      }
+      console.log(`Profile fetched for user ${userId}:`, result[0]);
+      return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+    } catch (error) {
+      console.error(`Error fetching or creating profile for user ${userId}:`, error);
+      throw error;
     }
-
-    return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
   }
 
   async createProfile(insertProfile: InsertProfile): Promise<Profile> {
-    const result = await db.insert(profiles).values(insertProfile).returning();
-    return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+    try {
+      const result = await db.insert(profiles).values(insertProfile).returning();
+      console.log("Profile created:", result[0]);
+      return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      throw error;
+    }
   }
 
-
   async updateProfileRole(userId: string, role: 'buyer' | 'seller'): Promise<Profile | undefined> {
-    const result = await db.update(profiles).set({ role }).where(eq(profiles.id, userId)).returning();
-    if (result[0]) {
-      return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+    try {
+      const result = await db.update(profiles).set({ role }).where(eq(profiles.id, userId)).returning();
+      if (result[0]) {
+        console.log(`Profile role updated for user ${userId} to ${role}:`, result[0]);
+        return { ...result[0], role: result[0].role as 'buyer' | 'seller' };
+      }
+      console.warn(`Profile not found for update: userId=${userId}`);
+      return undefined;
+    } catch (error) {
+      console.error(`Error updating profile role for user ${userId} to ${role}:`, error);
+      throw error;
     }
-    return undefined;
   }
 
   async getFavorites(userId: string): Promise<Favorite[]> {
