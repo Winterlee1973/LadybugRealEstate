@@ -95,7 +95,7 @@ export default function SellerAdminPage() {
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('userId', user.id); // Corrected column name to userId
+        .eq('user_id', user.id); // Corrected column name to user_id
 
       if (error) {
         console.error("Error fetching listings:", error);
@@ -263,7 +263,7 @@ export default function SellerAdminPage() {
 
     // Insert property data into Supabase table
     const propertyData = {
-      userId: user.id, // Corrected column name to userId
+      user_id: user.id, // Corrected column name to user_id
       address: address,
       description: description,
       price: parseFloat(price), // Convert price to number

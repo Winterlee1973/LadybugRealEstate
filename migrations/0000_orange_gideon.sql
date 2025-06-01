@@ -1,11 +1,11 @@
-CREATE TABLE "favorites" (
+CREATE TABLE IF NOT EXISTS "favorites" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"property_id" text NOT NULL,
 	"user_id" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "inquiries" (
+CREATE TABLE IF NOT EXISTS "inquiries" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"property_id" text NOT NULL,
 	"name" text NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE "inquiries" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "properties" (
+CREATE TABLE IF NOT EXISTS "properties" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"property_id" text NOT NULL,
 	"title" text NOT NULL,
