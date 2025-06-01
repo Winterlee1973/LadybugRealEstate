@@ -37,13 +37,16 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Create user profile
   app.post("/api/profile", async (req, res) => {
     try {
-      const { id, role } = req.body;
+      const { id, role: providedRole } = req.body;
 
-      if (!id || !role) {
-        return res.status(400).json({ message: "User ID (id) and role are required" });
+      if (!id) {
+        return res.status(400).json({ message: "User ID (id) is required" });
       }
-      // Basic role validation, can be expanded
-      if (role !== 'buyer' && role !== 'seller') {
+
+      let role = providedRole;
+      if (!role) {
+        role = 'seller'; // Default role to 'seller' if not provided
+      } else if (role !== 'buyer' && role !== 'seller') {
         return res.status(400).json({ message: "Invalid role. Must be 'buyer' or 'seller'." });
       }
 

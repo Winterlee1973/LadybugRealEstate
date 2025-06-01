@@ -239,4 +239,19 @@ export class SupabaseStorage implements IStorage {
       throw new Error('Failed to create profile');
     }
   }
+
+  async updateProfileRole(id: string, role: 'buyer' | 'seller'): Promise<Profile | undefined> {
+    try {
+      const result = await db
+        .update(profiles)
+        .set({ role })
+        .where(eq(profiles.id, id))
+        .returning();
+
+      return result[0];
+    } catch (error) {
+      console.error('Failed to update profile role:', error);
+      throw new Error('Failed to update profile role');
+    }
+  }
 }

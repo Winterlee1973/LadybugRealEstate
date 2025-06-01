@@ -31,6 +31,7 @@ export interface IStorage {
   // Inquiries
   getInquiries(propertyId: string): Promise<Inquiry[]>;
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
+  updateProfileRole(id: string, role: 'buyer' | 'seller'): Promise<Profile | undefined>;
 }
 
 export class SupabaseStorage implements IStorage {
