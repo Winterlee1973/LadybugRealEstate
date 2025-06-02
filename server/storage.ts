@@ -21,7 +21,8 @@ export interface IStorage {
     address?: string;
     title?: string;
     propertyId?: string;
-    zipCode?: string; // Add zipCode to the interface
+    zipCode?: string;
+    general?: string; // Add general search parameter
   }): Promise<Property[]>;
 
   // Profiles
@@ -90,7 +91,8 @@ export class SupabaseStorage implements IStorage {
     address?: string;
     title?: string;
     propertyId?: string;
-    zipCode?: string; // Add zipCode here
+    zipCode?: string;
+    general?: string; // Add general search parameter here
   }): Promise<Property[]> {
     const conditions = [];
 
@@ -125,8 +127,18 @@ export class SupabaseStorage implements IStorage {
     if (query.propertyId) {
       conditions.push(ilike(properties.propertyId, `%${query.propertyId}%`));
     }
-    if (query.zipCode) { // Revert to ilike for zipCode match
+    if (query.zipCode) {
       conditions.push(ilike(properties.zipCode, `%${query.zipCode}%`));
+    }
+
+    if (query.general) {
+      const generalSearchConditions = [
+        ilike(properties.address, `%${query.general}%`),
+        ilike(properties.city, `%${query.general}%`),
+        ilike(properties.zipCode, `%${query.general}%`),
+        ilike(properties.title, `%${query.general}%`),
+      ];
+      conditions.push(sql`(${and(...generalSearchConditions)})`);
     }
 
     if (conditions.length === 0) {
@@ -185,7 +197,23 @@ export class SupabaseStorage implements IStorage {
   }
 
   async addFavorite(insertFavorite: InsertFavorite): Promise<Favorite> {
+    // Check if the favorite already exists
+    const existingFavorite = await db.select()
+      .from(favorites)
+      .where(and(
+        eq(favorites.propertyId, insertFavorite.propertyId),
+        eq(favorites.userId, insertFavorite.userId)
+      ))
+      .limit(1);
+
+    if (existingFavorite.length > 0) {
+      console.log("Favorite already exists:", existingFavorite[0]);
+      return existingFavorite[0]; // Return the existing favorite
+    }
+
+    // If it doesn't exist, insert it
     const result = await db.insert(favorites).values(insertFavorite).returning();
+    console.log("Favorite added:", result[0]);
     return result[0];
   }
 

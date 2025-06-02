@@ -5,6 +5,7 @@ export interface SearchFilters {
   bathrooms?: number;
   city?: string;
   propertyType?: string;
+  zipCode?: string;
 }
 
 export interface ContactFormData {

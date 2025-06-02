@@ -12,42 +12,29 @@ import type { Property } from "@shared/schema";
 import type { SearchFilters } from "@/lib/types";
 
 export default function PropertyListings() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation(); // Add setLocation
   const [filters, setFilters] = useState<SearchFilters>({});
-  
-  // Initialize searchQuery directly from URL on component mount
-  const initialSearchQuery = new URLSearchParams(location.split('?')[1] || '').get('q') || "";
-  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-  
   const [sortBy, setSortBy] = useState("newest");
 
-  // Remove useEffect as searchQuery is now initialized directly
-  // useEffect(() => {
-  //   const urlParams = new URLSearchParams(location.split('?')[1] || '');
-  //   const q = urlParams.get('q');
-  //   if (q) {
-  //     setSearchQuery(q);
-  //   }
-  // }, [location]);
+  // State for the input field, synchronized with URL 'q' parameter
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    return urlParams.get('q') || "";
+  });
+
 
   const { data: properties = [], isLoading } = useQuery<Property[]>({
-    queryKey: ['properties', filters, searchQuery], // Include searchQuery in queryKey
+    queryKey: ['properties', filters, location], // Use location directly in queryKey
     queryFn: async () => {
-      const params = new URLSearchParams();
-      
-      if (filters.priceMin) params.append('priceMin', filters.priceMin.toString());
-      if (filters.priceMax) params.append('priceMax', filters.priceMax.toString());
-      if (filters.bedrooms) params.append('bedrooms', filters.bedrooms.toString());
-      if (filters.bathrooms) params.append('bathrooms', filters.bathrooms.toString());
-      if (filters.city) params.append('city', filters.city);
-      if (filters.propertyType) params.append('propertyType', filters.propertyType);
+      const urlParams = new URLSearchParams(location.split('?')[1] || '');
+      const q = urlParams.get('q'); // Get 'q' directly from current location
 
       const currentParams = new URLSearchParams();
-      let baseUrl = '/api/properties'; // Default to fetching all properties
+      let baseUrl = '/api/properties';
 
-      if (searchQuery) {
-        baseUrl = '/api/search'; // If there's a search query, use the search API
-        currentParams.append('q', searchQuery);
+      if (q) {
+        baseUrl = '/api/search';
+        currentParams.append('q', q);
       }
 
       if (filters.priceMin) currentParams.append('priceMin', filters.priceMin.toString());
@@ -56,6 +43,7 @@ export default function PropertyListings() {
       if (filters.bathrooms) currentParams.append('bathrooms', filters.bathrooms.toString());
       if (filters.city) currentParams.append('city', filters.city);
       if (filters.propertyType) currentParams.append('propertyType', filters.propertyType);
+      if (filters.zipCode) currentParams.append('zipCode', filters.zipCode);
 
       let url = baseUrl;
       if (currentParams.toString()) {
@@ -66,7 +54,7 @@ export default function PropertyListings() {
       if (!response.ok) throw new Error('Failed to fetch properties');
       return response.json();
     },
-    enabled: !!searchQuery || Object.keys(filters).length > 0, // Only enable if search query or filters are present
+    enabled: !!new URLSearchParams(location.split('?')[1] || '').get('q') || Object.keys(filters).length > 0, // Enable based on 'q' param or filters
   });
 
   // No need for client-side filtering if backend handles search
@@ -87,8 +75,14 @@ export default function PropertyListings() {
   });
 
   const handleSearch = () => {
-    // The useQuery hook will automatically refetch when searchQuery changes
-    // No explicit filter update needed here, as searchQuery is part of queryKey
+    // Update the URL's 'q' parameter directly
+    const currentUrlParams = new URLSearchParams(location.split('?')[1] || '');
+    if (searchQuery) {
+      currentUrlParams.set('q', searchQuery);
+    } else {
+      currentUrlParams.delete('q');
+    }
+    setLocation(`/properties?${currentUrlParams.toString()}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -143,11 +137,18 @@ export default function PropertyListings() {
               <div className="flex flex-wrap gap-4">
                 <Input
                   type="text"
-                  placeholder="Property ID or Address"
+                  placeholder="Enter Property ID (e.g. LB1234) or Zip Code"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
                   className="flex-1 min-w-64"
+                />
+                <Input
+                  type="text"
+                  placeholder="Zip Code"
+                  value={filters.zipCode || ''}
+                  onChange={(e) => updateFilter('zipCode', e.target.value)}
+                  className="flex-1 min-w-32"
                 />
                 
                 <Select onValueChange={(value) => updateFilter('priceMax', value === 'any' ? undefined : parseInt(value))}>
@@ -219,7 +220,7 @@ export default function PropertyListings() {
         )}
 
         {/* Pagination */}
-        {sortedProperties.length > 0 && (
+        {sortedProperties.length > 10 && (
           <div className="flex justify-center mt-12">
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="icon" disabled>

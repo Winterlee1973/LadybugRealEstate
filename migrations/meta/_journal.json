@@ -8,6 +8,20 @@
       "when": 1748393976321,
       "tag": "0000_orange_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1748868805325,
+      "tag": "0001_smiling_killmonger",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1748869839249,
+      "tag": "0002_brainy_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

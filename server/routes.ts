@@ -15,7 +15,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Get all properties
   app.get("/api/properties", async (req, res) => {
     try {
-      const { priceMin, priceMax, bedrooms, bathrooms, city, propertyType } = req.query;
+      const { priceMin, priceMax, bedrooms, bathrooms, city, propertyType, zipCode } = req.query;
 
       const searchQuery = {
         ...(priceMin && { priceMin: parseInt(priceMin as string) }),
@@ -24,6 +24,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         ...(bathrooms && { bathrooms: parseFloat(bathrooms as string) }),
         ...(city && { city: city as string }),
         ...(propertyType && { propertyType: propertyType as string }),
+        ...(zipCode && { zipCode: zipCode as string }),
       };
 
       const properties = Object.keys(searchQuery).length > 0
@@ -108,13 +109,11 @@ export async function registerRoutes(app: Express): Promise<void> {
         const zipCodeMatch = query.match(/^\d{5}$/);
         if (zipCodeMatch) {
           // If it's a 5-digit zip code, search by zipCode
-          // If it's a 5-digit zip code, perform a direct query
-          const searchResults = await db.select().from(properties).where(eq(properties.zipCode, query));
+          const searchResults = await storage.searchProperties({ zipCode: query });
           res.json(searchResults);
         } else {
-          // If not a property ID or a 5-digit zip code, return empty results
-          // The searchProperties function will return an empty array if no conditions are met
-          const searchResults = await storage.searchProperties({});
+          // If not a property ID or a 5-digit zip code, perform a general search
+          const searchResults = await storage.searchProperties({ general: query });
           res.json(searchResults);
         }
       }
@@ -181,11 +180,14 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Get user favorites
   app.get("/api/favorites/:userId", async (req, res) => {
+    const { userId } = req.params; // Define userId outside try block
     try {
-      const { userId } = req.params;
+      console.log(`Fetching favorites for user: ${userId}`);
       const favorites = await storage.getFavorites(userId);
+      console.log(`Favorites fetched for ${userId}:`, favorites);
       res.json(favorites);
     } catch (error) {
+      console.error(`Failed to fetch favorites for user ${userId}:`, error); // userId is now in scope
       res.status(500).json({ message: "Failed to fetch favorites" });
     }
   });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   ChevronLeft, 
   Share2, 
@@ -34,8 +35,10 @@ import type { ContactFormData } from "@/lib/types";
 export default function PropertyDetail() {
   const [, params] = useRoute("/property/:propertyId");
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
   const [contactForm, setContactForm] = useState<ContactFormData>({
     name: "",
     email: "",
@@ -48,6 +51,107 @@ export default function PropertyDetail() {
     queryKey: [`/api/properties/${params?.propertyId}`],
     enabled: !!params?.propertyId,
   });
+
+  const { data: favorites, refetch: refetchFavorites } = useQuery<any[]>({
+    queryKey: [`userFavorites`, user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/favorites/${user.id}`);
+      if (!response.ok) throw new Error("Failed to fetch favorites");
+      return response.json();
+    },
+    enabled: !!user?.id, // Only run if user is logged in
+  });
+
+  useEffect(() => {
+    console.log("useEffect triggered. Favorites:", favorites, "Property ID:", params?.propertyId);
+    if (favorites && params?.propertyId) {
+      const isCurrentlyFavorited = favorites.some((fav: any) => fav.property_id === params.propertyId);
+      setIsFavorited(isCurrentlyFavorited);
+      console.log("Is Favorited set to:", isCurrentlyFavorited);
+    } else {
+      setIsFavorited(false); // Ensure it's false if no favorites or propertyId
+    }
+  }, [favorites, params?.propertyId]);
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to favorite properties.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!params?.propertyId) {
+      toast({
+        title: "Error",
+        description: "Property ID not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const response = await fetch(`/api/favorites/${params.propertyId}/${user.id}`, {
+          method: "DELETE",
+        });
+        if (response.ok) {
+          setIsFavorited(false);
+          toast({
+            title: "Removed from favorites",
+            description: "This property has been removed from your favorites.",
+          });
+          refetchFavorites(); // Re-fetch favorites after removal
+        } else {
+          console.error("Failed to remove favorite:", await response.text());
+          toast({
+            title: "Error",
+            description: "Failed to remove from favorites. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch("/api/favorites", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ propertyId: params.propertyId, userId: user.id }),
+        });
+        if (response.ok) {
+          setIsFavorited(true);
+          toast({
+            title: "Added to favorites",
+            description: "This property has been added to your favorites.",
+          });
+          refetchFavorites(); // Re-fetch favorites after addition
+        } else {
+          console.error("Failed to add favorite:", await response.text());
+          toast({
+            title: "Error",
+            description: "Failed to add to favorites. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,9 +270,7 @@ export default function PropertyDetail() {
             <Button variant="outline" size="icon">
               <Share2 className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
-              <Heart className="h-4 w-4" />
-            </Button>
+-------
           </div>
         </div>
 
@@ -183,8 +285,20 @@ export default function PropertyDetail() {
                   alt={property.title ?? "Property Image"}
                   className="w-full h-96 object-cover rounded-xl"
                 />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 w-8 h-8 bg-white/80 hover:bg-white rounded-full"
+                  onClick={toggleFavorite}
+                >
+                  <Heart
+                    className={`h-4 w-4 ${
+                      isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
+                    }`}
+                  />
+                </Button>
 
-                <div className="absolute top-4 right-4 bg-white/90 text-dark-gray px-3 py-1 rounded-full text-sm font-medium">
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 text-dark-gray px-3 py-1 rounded-full text-sm font-medium">
                   {selectedImageIndex + 1} / {property.images.length}
                 </div>
 
