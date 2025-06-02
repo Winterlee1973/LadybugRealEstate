@@ -27,7 +27,7 @@ export default function PropertyListings() {
   }, [location]);
 
   const { data: properties = [], isLoading } = useQuery<Property[]>({
-    queryKey: ['/api/properties', filters],
+    queryKey: ['properties', filters, searchQuery], // Include searchQuery in queryKey
     queryFn: async () => {
       const params = new URLSearchParams();
       
@@ -38,23 +38,25 @@ export default function PropertyListings() {
       if (filters.city) params.append('city', filters.city);
       if (filters.propertyType) params.append('propertyType', filters.propertyType);
 
-      const response = await fetch(`/api/properties?${params}`);
+      let url = '/api/properties';
+      if (searchQuery) {
+        url = `/api/search?q=${encodeURIComponent(searchQuery)}`;
+        // If there are other filters, append them to the search URL
+        if (params.toString()) {
+          url += `&${params.toString()}`;
+        }
+      } else if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch properties');
       return response.json();
     },
   });
 
-  // Filter properties based on search query
-  const filteredProperties = properties.filter(property => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      property.propertyId.toLowerCase().includes(query) ||
-      property.address.toLowerCase().includes(query) ||
-      property.city.toLowerCase().includes(query) ||
-      property.title.toLowerCase().includes(query)
-    );
-  });
+  // No need for client-side filtering if backend handles search
+  const filteredProperties = properties;
 
   // Sort properties
   const sortedProperties = [...filteredProperties].sort((a, b) => {
@@ -71,8 +73,8 @@ export default function PropertyListings() {
   });
 
   const handleSearch = () => {
-    // Trigger re-filter by updating the search query
-    setFilters(prev => ({ ...prev }));
+    // The useQuery hook will automatically refetch when searchQuery changes
+    // No explicit filter update needed here, as searchQuery is part of queryKey
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

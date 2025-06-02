@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS "inquiries" (
 CREATE TABLE IF NOT EXISTS "properties" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"property_id" text NOT NULL,
+	"searchable_id" text,
 	"title" text NOT NULL,
 	"description" text NOT NULL,
 	"price" numeric(12, 2) NOT NULL,

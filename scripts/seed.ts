@@ -8,6 +8,7 @@ async function seed() {
   const sampleProperties = [
     {
       propertyId: uuidv4(),
+      searchableId: Math.floor(1000 + Math.random() * 9000).toString(), // Generate a random 4-digit number
       title: "Beautifully Renovated Single-Family Home",
       description: "Beautifully renovated single-family home in a prime location. This stunning property features an open floor plan, a gourmet kitchen with stainless steel appliances, and a spacious backyard perfect for entertaining. Enjoy modern finishes and ample natural light throughout.",
       price: "729000",
@@ -41,6 +42,7 @@ async function seed() {
     },
     {
       propertyId: uuidv4(),
+      searchableId: Math.floor(1000 + Math.random() * 9000).toString(), // Generate a random 4-digit number
       title: "Stunning Luxury Home with Pool",
       description: "Stunning luxury home with pool and panoramic city views. This magnificent property offers the ultimate in modern living with high-end finishes throughout.",
       price: "1250000",
@@ -71,6 +73,7 @@ async function seed() {
     },
     {
       propertyId: uuidv4(),
+      searchableId: Math.floor(1000 + Math.random() * 9000).toString(), // Generate a random 4-digit number
       title: "Classic Victorian Charm",
       description: "Classic Victorian charm with modern updates throughout. This historic home has been lovingly restored while maintaining its original character.",
       price: "585000",
@@ -100,6 +103,7 @@ async function seed() {
     },
     {
       propertyId: uuidv4(),
+      searchableId: Math.floor(1000 + Math.random() * 9000).toString(), // Generate a random 4-digit number
       title: "Architect-Designed Contemporary",
       description: "Architect-designed contemporary home with stunning views. This modern masterpiece showcases clean lines and innovative design.",
       price: "950000",
@@ -129,6 +133,7 @@ async function seed() {
     },
     {
       propertyId: uuidv4(),
+      searchableId: Math.floor(1000 + Math.random() * 9000).toString(), // Generate a random 4-digit number
       title: "Charming Cottage Perfect for First-Time Buyers",
       description: "Charming cottage perfect for first-time buyers. This cozy home offers comfortable living in a desirable neighborhood.",
       price: "425000",
@@ -158,6 +163,7 @@ async function seed() {
     },
     {
       propertyId: uuidv4(),
+      searchableId: Math.floor(1000 + Math.random() * 9000).toString(), // Generate a random 4-digit number
       title: "Single-Level Living with Large Lot",
       description: "Single-level living with spacious rooms and large lot. Perfect for those seeking comfort and convenience in one floor living.",
       price: "675000",

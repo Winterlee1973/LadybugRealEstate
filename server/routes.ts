@@ -90,16 +90,17 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const query = q as string;
-      const properties = await storage.getProperties();
+      
+      // Attempt to search by searchableId first, then by other fields
+      const searchResults = await storage.searchProperties({
+        searchableId: query,
+        // Also include other fields for broader search if needed, e.g.,
+        // city: query,
+        // address: query,
+        // title: query,
+      });
 
-      // Search by property ID or address
-      const results = properties.filter(property =>
-        property.propertyId.toLowerCase().includes(query.toLowerCase()) ||
-        property.address.toLowerCase().includes(query.toLowerCase()) ||
-        property.city.toLowerCase().includes(query.toLowerCase())
-      );
-
-      res.json(results);
+      res.json(searchResults);
     } catch (error) {
       res.status(500).json({ message: "Search failed" });
     }

@@ -17,6 +17,7 @@ export interface IStorage {
     bathrooms?: number;
     city?: string;
     propertyType?: string;
+    searchableId?: string;
   }): Promise<Property[]>;
 
   // Profiles
@@ -43,7 +44,14 @@ export class SupabaseStorage implements IStorage {
   }
 
   async getProperty(propertyId: string): Promise<Property | undefined> {
-    const result = await db.select().from(properties).where(eq(properties.propertyId, propertyId)).limit(1);
+    // Try to find by propertyId (UUID) first
+    let result = await db.select().from(properties).where(eq(properties.propertyId, propertyId)).limit(1);
+    if (result[0]) {
+      return result[0];
+    }
+
+    // If not found by UUID, try to find by searchableId (4-digit number)
+    result = await db.select().from(properties).where(eq(properties.searchableId, propertyId)).limit(1);
     return result[0];
   }
 
@@ -74,6 +82,7 @@ export class SupabaseStorage implements IStorage {
     bathrooms?: number;
     city?: string;
     propertyType?: string;
+    searchableId?: string;
   }): Promise<Property[]> {
     const conditions = [];
 
@@ -94,6 +103,10 @@ export class SupabaseStorage implements IStorage {
     }
     if (query.propertyType) {
       conditions.push(eq(properties.propertyType, query.propertyType));
+    }
+
+    if (query.searchableId) {
+      conditions.push(ilike(properties.searchableId, `%${query.searchableId}%`));
     }
 
     const result = await db.select().from(properties).where(and(...conditions));

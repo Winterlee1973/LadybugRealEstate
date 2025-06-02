@@ -11,6 +11,7 @@ export const profiles = pgTable("profiles", {
 export const properties = pgTable("properties", {
   id: serial("id").primaryKey(),
   propertyId: text("property_id").notNull().unique(),
+  searchableId: text("searchable_id"),
   title: text("title").notNull(),
   description: text("description").notNull(),
   price: decimal("price", { precision: 12, scale: 2 }).notNull(),
