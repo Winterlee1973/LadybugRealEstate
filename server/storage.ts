@@ -21,6 +21,7 @@ export interface IStorage {
     address?: string;
     title?: string;
     propertyId?: string;
+    zipCode?: string; // Add zipCode to the interface
   }): Promise<Property[]>;
 
   // Profiles
@@ -89,6 +90,7 @@ export class SupabaseStorage implements IStorage {
     address?: string;
     title?: string;
     propertyId?: string;
+    zipCode?: string; // Add zipCode here
   }): Promise<Property[]> {
     const conditions = [];
 
@@ -122,6 +124,9 @@ export class SupabaseStorage implements IStorage {
     }
     if (query.propertyId) {
       conditions.push(ilike(properties.propertyId, `%${query.propertyId}%`));
+    }
+    if (query.zipCode) { // Use eq for exact zipCode match
+      conditions.push(eq(properties.zipCode, query.zipCode));
     }
 
     if (conditions.length === 0) {

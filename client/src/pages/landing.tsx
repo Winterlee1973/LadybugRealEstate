@@ -11,12 +11,19 @@ export default function Landing() {
 
   const handleSearch = () => {
     if (searchQuery) {
-      const propertyIdMatch = searchQuery.match(/^(LB)?(\d{4})$/i);
+      const trimmedQuery = searchQuery.trim();
+      const propertyIdMatch = trimmedQuery.match(/^(LB)?(\d{4})$/i);
+      const zipCodeMatch = trimmedQuery.match(/^\d{5}$/);
+
       if (propertyIdMatch) {
         const numericId = propertyIdMatch[2];
         setLocation(`/property/${numericId}`); // Redirect to property detail page
+      } else if (zipCodeMatch) {
+        setLocation(`/properties?q=${trimmedQuery}`); // Redirect to listings page for 5-digit zip code
       } else {
-        setLocation(`/properties?q=${searchQuery}`); // Redirect to listings page for general search
+        // Optionally, provide feedback to the user for invalid input
+        // For now, do nothing if it's not a property ID or a 5-digit zip code
+        // This prevents redirecting to /properties with arbitrary search terms
       }
     }
   };

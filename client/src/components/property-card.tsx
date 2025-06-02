@@ -62,7 +62,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               {formatPrice(property.price)}
             </h3>
             <Badge variant="secondary" className="text-xs bg-gray-100">
-              {property.propertyId}
+              <span className="text-ladybug">LB</span>{property.searchableId}
             </Badge>
           </div>
 

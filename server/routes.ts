@@ -103,13 +103,19 @@ export async function registerRoutes(app: Express): Promise<void> {
           return res.json([]); // No property found with that ID
         }
       } else {
-        // If not a specific property ID, perform a broader search
-        const searchResults = await storage.searchProperties({
-          city: query,
-          address: query,
-          title: query,
-        });
-        res.json(searchResults);
+        const zipCodeMatch = query.match(/^\d{5}$/);
+        if (zipCodeMatch) {
+          // If it's a 5-digit zip code, search by zipCode
+          const searchResults = await storage.searchProperties({
+            zipCode: query,
+          });
+          res.json(searchResults);
+        } else {
+          // If not a property ID or a 5-digit zip code, return empty results
+          // The searchProperties function will return an empty array if no conditions are met
+          const searchResults = await storage.searchProperties({});
+          res.json(searchResults);
+        }
       }
     } catch (error) {
       res.status(500).json({ message: "Search failed" });
