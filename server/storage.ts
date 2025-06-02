@@ -125,8 +125,8 @@ export class SupabaseStorage implements IStorage {
     if (query.propertyId) {
       conditions.push(ilike(properties.propertyId, `%${query.propertyId}%`));
     }
-    if (query.zipCode) { // Use eq for exact zipCode match
-      conditions.push(eq(properties.zipCode, query.zipCode));
+    if (query.zipCode) { // Revert to ilike for zipCode match
+      conditions.push(ilike(properties.zipCode, `%${query.zipCode}%`));
     }
 
     if (conditions.length === 0) {

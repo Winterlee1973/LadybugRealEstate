@@ -1,9 +1,11 @@
 import type { Express } from "express";
 // Remove createServer and type Server import
 import { storage } from "./storage";
-import { insertInquirySchema } from "@shared/schema";
+import { insertInquirySchema, properties } from "@shared/schema";
 import { z } from "zod";
 import { log } from "./vite";
+import { db } from "./db"; // Import db
+import { eq } from "drizzle-orm"; // Import eq
 
 // Modify function signature and remove server creation
 export async function registerRoutes(app: Express): Promise<void> {
@@ -106,9 +108,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         const zipCodeMatch = query.match(/^\d{5}$/);
         if (zipCodeMatch) {
           // If it's a 5-digit zip code, search by zipCode
-          const searchResults = await storage.searchProperties({
-            zipCode: query,
-          });
+          // If it's a 5-digit zip code, perform a direct query
+          const searchResults = await db.select().from(properties).where(eq(properties.zipCode, query));
           res.json(searchResults);
         } else {
           // If not a property ID or a 5-digit zip code, return empty results

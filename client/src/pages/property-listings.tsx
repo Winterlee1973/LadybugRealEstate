@@ -42,8 +42,13 @@ export default function PropertyListings() {
       if (filters.city) params.append('city', filters.city);
       if (filters.propertyType) params.append('propertyType', filters.propertyType);
 
-      let url = '/api/properties';
       const currentParams = new URLSearchParams();
+      let baseUrl = '/api/properties'; // Default to fetching all properties
+
+      if (searchQuery) {
+        baseUrl = '/api/search'; // If there's a search query, use the search API
+        currentParams.append('q', searchQuery);
+      }
 
       if (filters.priceMin) currentParams.append('priceMin', filters.priceMin.toString());
       if (filters.priceMax) currentParams.append('priceMax', filters.priceMax.toString());
@@ -52,11 +57,7 @@ export default function PropertyListings() {
       if (filters.city) currentParams.append('city', filters.city);
       if (filters.propertyType) currentParams.append('propertyType', filters.propertyType);
 
-      if (searchQuery) {
-        currentParams.append('q', searchQuery);
-        url = `/api/search`;
-      }
-
+      let url = baseUrl;
       if (currentParams.toString()) {
         url += `?${currentParams.toString()}`;
       }
@@ -65,6 +66,7 @@ export default function PropertyListings() {
       if (!response.ok) throw new Error('Failed to fetch properties');
       return response.json();
     },
+    enabled: !!searchQuery || Object.keys(filters).length > 0, // Only enable if search query or filters are present
   });
 
   // No need for client-side filtering if backend handles search

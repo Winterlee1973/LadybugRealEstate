@@ -1,23 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Bed, Bath, Square } from "lucide-react";
 import type { Property } from "@shared/schema";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  const { user } = useAuth(); // Get user from AuthContext
   const [isFavorited, setIsFavorited] = useState(false);
 
-  const toggleFavorite = (e: React.MouseEvent) => {
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (user) {
+        try {
+          const response = await fetch(`/api/favorites/${user.id}`);
+          if (response.ok) {
+            const favorites = await response.json();
+            setIsFavorited(favorites.some((fav: any) => fav.property_id === property.propertyId));
+          }
+        } catch (error) {
+          console.error("Failed to fetch favorites:", error);
+        }
+      }
+    };
+    fetchFavorites();
+  }, [user, property.propertyId]);
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorited(!isFavorited);
-    // TODO: Implement favorite API call
+
+    if (!user) {
+      // Optionally, prompt user to log in
+      alert("Please log in to favorite properties.");
+      return;
+    }
+
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const response = await fetch(`/api/favorites/${property.propertyId}/${user.id}`, {
+          method: "DELETE",
+        });
+        if (response.ok) {
+          setIsFavorited(false);
+        } else {
+          console.error("Failed to remove favorite:", await response.text());
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch("/api/favorites", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ propertyId: property.propertyId, userId: user.id }),
+        });
+        if (response.ok) {
+          setIsFavorited(true);
+        } else {
+          console.error("Failed to add favorite:", await response.text());
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
   };
 
   const formatPrice = (price: string) => {
@@ -47,7 +100,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           >
             <Heart
               className={`h-4 w-4 ${
-                isFavorited ? "fill-ladybug text-ladybug" : "text-gray-600"
+                isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
               }`}
             />
           </Button>

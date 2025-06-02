@@ -103,10 +103,12 @@ export default function Navigation() {
                           </DropdownMenuItem>
                         </Link>
                       )}
-                      <DropdownMenuItem>
-                        <Heart className="mr-2 h-4 w-4" />
-                        <span>Favorites</span>
-                      </DropdownMenuItem>
+                      <Link href="/favorites"> {/* Add Link to favorites page */}
+                        <DropdownMenuItem>
+                          <Heart className="mr-2 h-4 w-4" />
+                          <span>Favorites</span>
+                        </DropdownMenuItem>
+                      </Link>
                       <DropdownMenuItem onClick={handleSignOut}>
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>

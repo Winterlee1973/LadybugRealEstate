@@ -11,6 +11,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        "red-heart": "#EF4444", // A vibrant red for the heart icon
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
