@@ -43,7 +43,6 @@ export default function PropertyListings() {
       if (filters.bathrooms) currentParams.append('bathrooms', filters.bathrooms.toString());
       if (filters.city) currentParams.append('city', filters.city);
       if (filters.propertyType) currentParams.append('propertyType', filters.propertyType);
-      if (filters.zipCode) currentParams.append('zipCode', filters.zipCode);
 
       let url = baseUrl;
       if (currentParams.toString()) {
@@ -137,18 +136,11 @@ export default function PropertyListings() {
               <div className="flex flex-wrap gap-4">
                 <Input
                   type="text"
-                  placeholder="Enter Property ID (e.g. LB1234) or Zip Code"
+                  placeholder="Enter Property ID (e.g. LB1234)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
                   className="flex-1 min-w-64"
-                />
-                <Input
-                  type="text"
-                  placeholder="Zip Code"
-                  value={filters.zipCode || ''}
-                  onChange={(e) => updateFilter('zipCode', e.target.value)}
-                  className="flex-1 min-w-32"
                 />
                 
                 <Select onValueChange={(value) => updateFilter('priceMax', value === 'any' ? undefined : parseInt(value))}>

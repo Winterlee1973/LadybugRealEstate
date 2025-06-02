@@ -7,6 +7,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import PropertyCard from "@/components/property-card";
 import type { Property } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function FavoriteListings() {
   const { user, loading: authLoading } = useAuth(); // Get user and authLoading from AuthContext
@@ -106,6 +113,19 @@ export default function FavoriteListings() {
             <p className="text-medium-gray">
               {isLoading ? "Loading..." : `${sortedProperties.length} properties found`}
             </p>
+          </div>
+          <div className="mt-4 lg:mt-0">
+            <Select onValueChange={setSortBy} defaultValue={sortBy}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="price-low">Price: Low to High</SelectItem>
+                <SelectItem value="price-high">Price: High to Low</SelectItem>
+                <SelectItem value="bedrooms">Bedrooms</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

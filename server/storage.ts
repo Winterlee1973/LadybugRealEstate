@@ -192,7 +192,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   async getFavorites(userId: string): Promise<Favorite[]> {
-    const result = await db.select().from(favorites).where(eq(favorites.userId, userId));
+    const result = await db.select().from(favorites).where(eq(favorites.userId, userId as any)); // Cast userId to any for now due to schema change
     return result;
   }
 
@@ -202,7 +202,7 @@ export class SupabaseStorage implements IStorage {
       .from(favorites)
       .where(and(
         eq(favorites.propertyId, insertFavorite.propertyId),
-        eq(favorites.userId, insertFavorite.userId)
+        eq(favorites.userId, insertFavorite.userId as any) // Cast userId to any for now due to schema change
       ))
       .limit(1);
 
@@ -218,7 +218,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   async removeFavorite(propertyId: string, userId: string): Promise<boolean> {
-    const result = await db.delete(favorites).where(and(eq(favorites.propertyId, propertyId), eq(favorites.userId, userId))).returning();
+    const result = await db.delete(favorites).where(and(eq(favorites.propertyId, propertyId), eq(favorites.userId, userId as any))).returning(); // Cast userId to any for now due to schema change
     return result.length > 0;
   }
 

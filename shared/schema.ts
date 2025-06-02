@@ -42,8 +42,8 @@ export const properties = pgTable("properties", {
 
 export const favorites = pgTable("favorites", {
   id: serial("id").primaryKey(),
-  propertyId: uuid("property_id").notNull(),
-  userId: text("user_id").notNull(),
+  propertyId: text("property_id").notNull().references(() => properties.propertyId), // Changed to text and references properties.propertyId
+  userId: uuid("user_id").notNull().references(() => profiles.id), // Changed to uuid and references profiles.id
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

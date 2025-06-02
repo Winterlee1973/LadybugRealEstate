@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Bed, Bath, Square } from "lucide-react";
 import type { Property } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PropertyCardProps {
   property: Property;
@@ -13,6 +14,7 @@ interface PropertyCardProps {
 
 export default function PropertyCard({ property }: PropertyCardProps) {
   const { user } = useAuth(); // Get user from AuthContext
+  const queryClient = useQueryClient(); // Initialize useQueryClient
   const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         });
         if (response.ok) {
           setIsFavorited(false);
+          queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user.id] }); // Invalidate favorite properties query
         } else {
           console.error("Failed to remove favorite:", await response.text());
         }
@@ -64,6 +67,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         });
         if (response.ok) {
           setIsFavorited(true);
+          queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user.id] }); // Invalidate favorite properties query
         } else {
           console.error("Failed to add favorite:", await response.text());
         }
