@@ -343,12 +343,14 @@ The application is ready for deployment on:
 
 Use these sample Property IDs to test the search functionality:
 
-- `LBG12345` - Beautifully Renovated Single-Family Home ($729,000)
-- `LBG12346` - Stunning Luxury Home with Pool ($1,250,000)
-- `LBG12347` - Classic Victorian Charm ($585,000)
-- `LBG12348` - Architect-Designed Contemporary ($950,000)
-- `LBG12349` - Charming Cottage Perfect for First-Time Buyers ($425,000)
-- `LBG12350` - Single-Level Living with Large Lot ($675,000)
+- `LB1234` - Beautifully Renovated Single-Family Home ($729,000)
+- `LB1235` - Stunning Luxury Home with Pool ($1,250,000)
+- `LB1236` - Classic Victorian Charm ($585,000)
+- `LB1237` - Architect-Designed Contemporary ($950,000)
+- `LB1238` - Charming Cottage Perfect for First-Time Buyers ($425,000)
+- `LB1239` - Single-Level Living with Large Lot ($675,000)
+
+**Note:** Property IDs can be entered as either `LB1234` or just `1234` format.
 
 ## 🤖 AI Chat Testing
 
