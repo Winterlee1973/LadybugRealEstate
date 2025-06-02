@@ -295,6 +295,9 @@ npm run type-check
 npm run db:generate    # Generate migrations
 npm run db:migrate     # Run migrations
 npm run db:studio      # Open Drizzle Studio
+
+**Important Note for Supabase Database Updates:**
+Any database schema updates for Supabase should be performed by manually feeding SQL statements directly into the Supabase interface, rather than pushing changes via migrations. Generate the SQL statements using Drizzle Kit and then apply them manually.
 ```
 
 ## 🚀 Production Deployment

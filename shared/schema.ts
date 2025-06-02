@@ -42,7 +42,7 @@ export const properties = pgTable("properties", {
 
 export const favorites = pgTable("favorites", {
   id: serial("id").primaryKey(),
-  propertyId: text("property_id").notNull(),
+  propertyId: uuid("property_id").notNull(),
   userId: text("user_id").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
