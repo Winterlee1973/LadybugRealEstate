@@ -124,6 +124,9 @@ export class SupabaseStorage implements IStorage {
       conditions.push(ilike(properties.propertyId, `%${query.propertyId}%`));
     }
 
+    if (conditions.length === 0) {
+      return []; // If no search criteria, return empty array
+    }
     const result = await db.select().from(properties).where(and(...conditions));
     return result;
   }

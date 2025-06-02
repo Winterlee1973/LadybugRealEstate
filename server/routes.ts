@@ -91,16 +91,26 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const query = q as string;
       
-      // Attempt to search by searchableId first, then by other fields
-      const searchResults = await storage.searchProperties({
-        searchableId: query,
-        city: query,
-        address: query,
-        title: query,
-        propertyId: query, // Include propertyId in search
-      });
+      // Check if the query matches a property ID pattern (e.g., LB1234 or 1234)
+      const propertyIdMatch = query.match(/^(LB)?(\d{4})$/i);
 
-      res.json(searchResults);
+      if (propertyIdMatch) {
+        const numericId = propertyIdMatch[2]; // Extract the 4-digit number
+        const property = await storage.getProperty(numericId); // getProperty handles both UUID and searchableId
+        if (property) {
+          return res.json([property]); // Return as an array for consistency with search results
+        } else {
+          return res.json([]); // No property found with that ID
+        }
+      } else {
+        // If not a specific property ID, perform a broader search
+        const searchResults = await storage.searchProperties({
+          city: query,
+          address: query,
+          title: query,
+        });
+        res.json(searchResults);
+      }
     } catch (error) {
       res.status(500).json({ message: "Search failed" });
     }

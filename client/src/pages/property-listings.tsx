@@ -14,17 +14,21 @@ import type { SearchFilters } from "@/lib/types";
 export default function PropertyListings() {
   const [location] = useLocation();
   const [filters, setFilters] = useState<SearchFilters>({});
-  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Initialize searchQuery directly from URL on component mount
+  const initialSearchQuery = new URLSearchParams(location.split('?')[1] || '').get('q') || "";
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  
   const [sortBy, setSortBy] = useState("newest");
 
-  // Parse URL search params
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
-    const q = urlParams.get('q');
-    if (q) {
-      setSearchQuery(q);
-    }
-  }, [location]);
+  // Remove useEffect as searchQuery is now initialized directly
+  // useEffect(() => {
+  //   const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  //   const q = urlParams.get('q');
+  //   if (q) {
+  //     setSearchQuery(q);
+  //   }
+  // }, [location]);
 
   const { data: properties = [], isLoading } = useQuery<Property[]>({
     queryKey: ['properties', filters, searchQuery], // Include searchQuery in queryKey
@@ -39,14 +43,22 @@ export default function PropertyListings() {
       if (filters.propertyType) params.append('propertyType', filters.propertyType);
 
       let url = '/api/properties';
+      const currentParams = new URLSearchParams();
+
+      if (filters.priceMin) currentParams.append('priceMin', filters.priceMin.toString());
+      if (filters.priceMax) currentParams.append('priceMax', filters.priceMax.toString());
+      if (filters.bedrooms) currentParams.append('bedrooms', filters.bedrooms.toString());
+      if (filters.bathrooms) currentParams.append('bathrooms', filters.bathrooms.toString());
+      if (filters.city) currentParams.append('city', filters.city);
+      if (filters.propertyType) currentParams.append('propertyType', filters.propertyType);
+
       if (searchQuery) {
-        url = `/api/search?q=${encodeURIComponent(searchQuery)}`;
-        // If there are other filters, append them to the search URL
-        if (params.toString()) {
-          url += `&${params.toString()}`;
-        }
-      } else if (params.toString()) {
-        url += `?${params.toString()}`;
+        currentParams.append('q', searchQuery);
+        url = `/api/search`;
+      }
+
+      if (currentParams.toString()) {
+        url += `?${currentParams.toString()}`;
       }
 
       const response = await fetch(url);

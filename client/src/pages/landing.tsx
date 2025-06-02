@@ -11,7 +11,13 @@ export default function Landing() {
 
   const handleSearch = () => {
     if (searchQuery) {
-      setLocation(`/property/${searchQuery}`);
+      const propertyIdMatch = searchQuery.match(/^(LB)?(\d{4})$/i);
+      if (propertyIdMatch) {
+        const numericId = propertyIdMatch[2];
+        setLocation(`/property/${numericId}`); // Redirect to property detail page
+      } else {
+        setLocation(`/properties?q=${searchQuery}`); // Redirect to listings page for general search
+      }
     }
   };
 
@@ -52,14 +58,14 @@ export default function Landing() {
           </p>
 
           {/* Search Bar */}
-          <div className="max-w-lg mx-auto mb-16">
+          <div className="max-w-2xl mx-auto mb-16">
             <div className="flex bg-white rounded-xl shadow-lg overflow-hidden">
               <div className="flex items-center px-4 text-medium-gray">
                 <Hash className="h-5 w-5" />
               </div>
               <Input
                 type="text"
-                placeholder="Enter Property ID (e.g. 1234)"
+                placeholder="Enter Property ID (e.g. LB1234) or Zip Code"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
