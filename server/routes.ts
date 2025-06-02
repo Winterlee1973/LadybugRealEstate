@@ -94,10 +94,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Attempt to search by searchableId first, then by other fields
       const searchResults = await storage.searchProperties({
         searchableId: query,
-        // Also include other fields for broader search if needed, e.g.,
-        // city: query,
-        // address: query,
-        // title: query,
+        city: query,
+        address: query,
+        title: query,
+        propertyId: query, // Include propertyId in search
       });
 
       res.json(searchResults);

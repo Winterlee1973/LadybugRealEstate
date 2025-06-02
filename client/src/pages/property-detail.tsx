@@ -436,7 +436,9 @@ export default function PropertyDetail() {
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-medium-gray">Property ID</span>
-                      <span className="text-dark-gray font-medium">{property.propertyId}</span>
+                      <span className="text-dark-gray font-medium">
+                        {property.searchableId ? `LB${property.searchableId}` : property.propertyId}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-medium-gray">Property Type</span>

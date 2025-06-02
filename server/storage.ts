@@ -18,6 +18,9 @@ export interface IStorage {
     city?: string;
     propertyType?: string;
     searchableId?: string;
+    address?: string;
+    title?: string;
+    propertyId?: string;
   }): Promise<Property[]>;
 
   // Profiles
@@ -83,6 +86,9 @@ export class SupabaseStorage implements IStorage {
     city?: string;
     propertyType?: string;
     searchableId?: string;
+    address?: string;
+    title?: string;
+    propertyId?: string;
   }): Promise<Property[]> {
     const conditions = [];
 
@@ -107,6 +113,15 @@ export class SupabaseStorage implements IStorage {
 
     if (query.searchableId) {
       conditions.push(ilike(properties.searchableId, `%${query.searchableId}%`));
+    }
+    if (query.address) {
+      conditions.push(ilike(properties.address, `%${query.address}%`));
+    }
+    if (query.title) {
+      conditions.push(ilike(properties.title, `%${query.title}%`));
+    }
+    if (query.propertyId) {
+      conditions.push(ilike(properties.propertyId, `%${query.propertyId}%`));
     }
 
     const result = await db.select().from(properties).where(and(...conditions));

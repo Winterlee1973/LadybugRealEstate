@@ -10,8 +10,9 @@ export default function Landing() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = () => {
-    // Always redirect to the specific property detail page
-    setLocation("/property/LBG12345");
+    if (searchQuery) {
+      setLocation(`/property/${searchQuery}`);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -58,7 +59,7 @@ export default function Landing() {
               </div>
               <Input
                 type="text"
-                placeholder="Enter Property ID (e.g. LBG12345)"
+                placeholder="Enter Property ID (e.g. 1234)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
