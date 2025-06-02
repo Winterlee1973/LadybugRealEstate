@@ -34,7 +34,12 @@ export default function PropertyListings() {
 
       if (q) {
         baseUrl = '/api/search';
-        currentParams.append('q', q);
+        // Check if 'q' is a 5-digit zip code
+        if (/^\d{5}$/.test(q)) {
+          currentParams.append('zipCode', q);
+        } else {
+          currentParams.append('q', q);
+        }
       }
 
       if (filters.priceMin) currentParams.append('priceMin', filters.priceMin.toString());
@@ -136,7 +141,7 @@ export default function PropertyListings() {
               <div className="flex flex-wrap gap-4">
                 <Input
                   type="text"
-                  placeholder="Enter Property ID (e.g. LB1234)"
+                  placeholder="Enter Property ID or Zip Code"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
