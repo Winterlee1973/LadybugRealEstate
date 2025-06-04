@@ -82,10 +82,10 @@ npm run dev
 ```
 
 This single command starts both:
-- **Frontend Development Server** (Vite) - http://localhost:5000
-- **Backend API Server** (Express) - http://localhost:5000/api
+- **Frontend Development Server** (Vite) - http://localhost:3000
+- **Backend API Server** (Express) - http://localhost:3000/api
 
-The application will automatically open in your browser at `http://localhost:5000`.
+The application will automatically open in your browser at `http://localhost:3000`.
 
 ### 4. VS Code Setup (Recommended)
 
@@ -321,7 +321,7 @@ For production deployment, set these environment variables:
 DATABASE_URL=your_database_connection_string
 
 # Server
-PORT=5000
+PORT=3000
 NODE_ENV=production
 
 # External Services (future integrations)

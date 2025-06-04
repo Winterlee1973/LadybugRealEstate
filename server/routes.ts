@@ -15,17 +15,47 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Get all properties
   app.get("/api/properties", async (req, res) => {
     try {
-      const { priceMin, priceMax, bedrooms, bathrooms, city, propertyType, zipCode } = req.query;
+      const { priceMin, priceMax, bedrooms, bathrooms, city, propertyType, zipCode, q } = req.query;
 
-      const searchQuery = {
+      const searchQuery: {
+        priceMin?: number;
+        priceMax?: number;
+        bedrooms?: number;
+        bathrooms?: number;
+        city?: string;
+        propertyType?: string;
+        zipCode?: string;
+        general?: string;
+      } = {
         ...(priceMin && { priceMin: parseInt(priceMin as string) }),
         ...(priceMax && { priceMax: parseInt(priceMax as string) }),
         ...(bedrooms && { bedrooms: parseInt(bedrooms as string) }),
         ...(bathrooms && { bathrooms: parseFloat(bathrooms as string) }),
         ...(city && { city: city as string }),
         ...(propertyType && { propertyType: propertyType as string }),
-        ...(zipCode && { zipCode: zipCode as string }),
       };
+
+      // If 'q' parameter is provided, check if it's a 5-digit zip code
+      if (q) {
+        const queryStr = q as string;
+        const zipCodeMatch = queryStr.match(/^\d{5}$/);
+        if (zipCodeMatch) {
+          searchQuery.zipCode = queryStr;
+        } else {
+          // If 'q' is not a zip code, treat it as a general search query
+          searchQuery.general = queryStr;
+        }
+      } else if (zipCode) {
+        // If 'q' is not provided but 'zipCode' is, use 'zipCode'
+        searchQuery.zipCode = zipCode as string;
+      }
+
+      // If no specific search parameters, but a general query is present, use it
+      if (Object.keys(searchQuery).length === 0 && q) {
+        searchQuery.general = q as string;
+      }
+
+      console.log("Search query for /api/properties:", searchQuery); // Add this line for debugging
 
       const properties = Object.keys(searchQuery).length > 0
         ? await storage.searchProperties(searchQuery)

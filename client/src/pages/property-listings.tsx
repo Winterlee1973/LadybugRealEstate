@@ -24,17 +24,19 @@ export default function PropertyListings() {
 
 
   const { data: properties = [], isLoading } = useQuery<Property[]>({
-    queryKey: ['properties', filters, location], // Use location directly in queryKey
+    queryKey: ['properties', filters, location],
     queryFn: async () => {
       const urlParams = new URLSearchParams(location.split('?')[1] || '');
-      const q = urlParams.get('q'); // Get 'q' directly from current location
+      const q = urlParams.get('q');
+      const zipCode = urlParams.get('zipCode'); // Get 'zipCode' directly from current location
 
       const currentParams = new URLSearchParams();
       let baseUrl = '/api/properties';
 
       if (q) {
-        baseUrl = '/api/search';
         currentParams.append('q', q);
+      } else if (zipCode) {
+        currentParams.append('zipCode', zipCode);
       }
 
       if (filters.priceMin) currentParams.append('priceMin', filters.priceMin.toString());
@@ -49,11 +51,13 @@ export default function PropertyListings() {
         url += `?${currentParams.toString()}`;
       }
 
+      console.log("Fetching properties from URL:", url); // Add this line for debugging
+
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch properties');
       return response.json();
     },
-    enabled: !!new URLSearchParams(location.split('?')[1] || '').get('q') || Object.keys(filters).length > 0, // Enable based on 'q' param or filters
+    enabled: !!new URLSearchParams(location.split('?')[1] || '').get('q') || !!new URLSearchParams(location.split('?')[1] || '').get('zipCode') || Object.keys(filters).length > 0,
   });
 
   // No need for client-side filtering if backend handles search
@@ -74,12 +78,19 @@ export default function PropertyListings() {
   });
 
   const handleSearch = () => {
-    // Update the URL's 'q' parameter directly
     const currentUrlParams = new URLSearchParams(location.split('?')[1] || '');
+    const isZipCode = searchQuery.match(/^\d{5}$/);
+
+    // Clear existing 'q' and 'zipCode' parameters
+    currentUrlParams.delete('q');
+    currentUrlParams.delete('zipCode');
+
     if (searchQuery) {
-      currentUrlParams.set('q', searchQuery);
-    } else {
-      currentUrlParams.delete('q');
+      if (isZipCode) {
+        currentUrlParams.set('zipCode', searchQuery);
+      } else {
+        currentUrlParams.set('q', searchQuery);
+      }
     }
     setLocation(`/properties?${currentUrlParams.toString()}`);
   };
