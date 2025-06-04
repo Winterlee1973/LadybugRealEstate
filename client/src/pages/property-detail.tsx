@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +36,7 @@ export default function PropertyDetail() {
   const [, params] = useRoute("/property/:propertyId");
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -53,7 +54,7 @@ export default function PropertyDetail() {
   });
 
   const { data: favorites, refetch: refetchFavorites } = useQuery<any[]>({
-    queryKey: [`userFavorites`, user?.id],
+    queryKey: ["favoriteProperties", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       const response = await fetch(`/api/favorites/${user.id}`);
@@ -109,6 +110,9 @@ export default function PropertyDetail() {
             description: "This property has been removed from your favorites.",
           });
           refetchFavorites(); // Re-fetch favorites after removal
+          queryClient.invalidateQueries({
+            queryKey: ["favoriteProperties", user.id],
+          });
         } else {
           console.error("Failed to remove favorite:", await response.text());
           toast({
@@ -133,6 +137,9 @@ export default function PropertyDetail() {
             description: "This property has been added to your favorites.",
           });
           refetchFavorites(); // Re-fetch favorites after addition
+          queryClient.invalidateQueries({
+            queryKey: ["favoriteProperties", user.id],
+          });
         } else {
           console.error("Failed to add favorite:", await response.text());
           toast({
@@ -291,11 +298,11 @@ export default function PropertyDetail() {
                   className="absolute top-4 right-4 w-8 h-8 bg-white/80 hover:bg-white rounded-full"
                   onClick={toggleFavorite}
                 >
-                  <Heart
-                    className={`h-4 w-4 ${
-                      isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
-                    }`}
-                  />
+                    <Heart
+                      className={`h-4 w-4 ${
+                        isFavorited ? "fill-blue-heart text-blue-heart" : "text-gray-600"
+                      }`}
+                    />
                 </Button>
 
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 text-dark-gray px-3 py-1 rounded-full text-sm font-medium">

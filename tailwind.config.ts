@@ -12,6 +12,7 @@ export default {
       },
       colors: {
         "red-heart": "#EF4444", // A vibrant red for the heart icon
+        "blue-heart": "#3B82F6", // A calm blue for the heart icon
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

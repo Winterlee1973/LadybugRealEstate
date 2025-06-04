@@ -40,7 +40,7 @@ export default function ProfilePage() {
         throw new Error("Failed to fetch profile");
       }
       const data: Profile = await response.json();
-      setRole(data.role);
+      setRole(data.role as "buyer" | "seller");
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast({

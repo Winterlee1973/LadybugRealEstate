@@ -104,7 +104,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           >
             <Heart
               className={`h-4 w-4 ${
-                isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
+                isFavorited ? "fill-blue-heart text-blue-heart" : "text-gray-600"
               }`}
             />
           </Button>
