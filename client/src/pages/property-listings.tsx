@@ -34,12 +34,7 @@ export default function PropertyListings() {
 
       if (q) {
         baseUrl = '/api/search';
-        // Check if 'q' is a 5-digit zip code
-        if (/^\d{5}$/.test(q)) {
-          currentParams.append('zipCode', q);
-        } else {
-          currentParams.append('q', q);
-        }
+        currentParams.append('q', q);
       }
 
       if (filters.priceMin) currentParams.append('priceMin', filters.priceMin.toString());
