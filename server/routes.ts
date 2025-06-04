@@ -86,13 +86,19 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Search properties by property ID or address
   app.get("/api/search", async (req, res) => {
     try {
-      const { q } = req.query;
+      const { q, zipCode } = req.query as { q?: string; zipCode?: string };
 
-      if (!q) {
+      if (!q && !zipCode) {
         return res.status(400).json({ message: "Search query is required" });
       }
 
-      const query = q as string;
+      // If a zipCode parameter is provided without a q value, search by zip code directly
+      if (!q && zipCode) {
+        const searchResults = await storage.searchProperties({ zipCode });
+        return res.json(searchResults);
+      }
+
+      const query = (q || "") as string;
       
       // Check if the query matches a property ID pattern (e.g., LB1234 or 1234)
       const propertyIdMatch = query.match(/^(LB)?(\d{4})$/i);
