@@ -298,11 +298,11 @@ export default function PropertyDetail() {
                   className="absolute top-4 right-4 w-8 h-8 bg-white/80 hover:bg-white rounded-full"
                   onClick={toggleFavorite}
                 >
-                  <Heart
-                    className={`h-4 w-4 ${
-                      isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
-                    }`}
-                  />
+                    <Heart
+                      className={`h-4 w-4 ${
+                        isFavorited ? "fill-blue-heart text-blue-heart" : "text-gray-600"
+                      }`}
+                    />
                 </Button>
 
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 text-dark-gray px-3 py-1 rounded-full text-sm font-medium">
