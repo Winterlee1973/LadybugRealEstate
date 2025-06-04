@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,21 +13,22 @@ import type { SearchFilters } from "@/lib/types";
 
 export default function PropertyListings() {
   const [location, setLocation] = useLocation(); // Add setLocation
+  const search = useSearch();
   const [filters, setFilters] = useState<SearchFilters>({});
   const [sortBy, setSortBy] = useState("newest");
 
   // State for the input field, synchronized with URL 'q' parameter
   const [searchQuery, setSearchQuery] = useState(() => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const urlParams = new URLSearchParams(search);
     return urlParams.get('q') || "";
   });
 
 
   const { data: properties = [], isLoading } = useQuery<Property[]>({
-    queryKey: ['properties', filters, location], // Use location directly in queryKey
+    queryKey: ['properties', filters, location, search], // include search
     queryFn: async () => {
-      const urlParams = new URLSearchParams(location.split('?')[1] || '');
-      const q = urlParams.get('q'); // Get 'q' directly from current location
+      const urlParams = new URLSearchParams(search);
+      const q = urlParams.get('q'); // Get 'q' from current search string
 
       const currentParams = new URLSearchParams();
       let baseUrl = '/api/properties';
@@ -58,7 +59,7 @@ export default function PropertyListings() {
       if (!response.ok) throw new Error('Failed to fetch properties');
       return response.json();
     },
-    enabled: !!new URLSearchParams(location.split('?')[1] || '').get('q') || Object.keys(filters).length > 0, // Enable based on 'q' param or filters
+    enabled: !!new URLSearchParams(search).get('q') || Object.keys(filters).length > 0, // Enable based on 'q' param or filters
   });
 
   // No need for client-side filtering if backend handles search
@@ -80,7 +81,7 @@ export default function PropertyListings() {
 
   const handleSearch = () => {
     // Update the URL's 'q' parameter directly
-    const currentUrlParams = new URLSearchParams(location.split('?')[1] || '');
+    const currentUrlParams = new URLSearchParams(search);
     if (searchQuery) {
       currentUrlParams.set('q', searchQuery);
     } else {
