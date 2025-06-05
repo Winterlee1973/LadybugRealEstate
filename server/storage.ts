@@ -94,6 +94,7 @@ export class SupabaseStorage implements IStorage {
     zipCode?: string;
     general?: string; // Add general search parameter here
   }): Promise<Property[]> {
+    console.log("searchProperties called with query:", query); // Add this line for debugging
     const conditions = [];
 
     if (query.priceMin) {
