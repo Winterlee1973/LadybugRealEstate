@@ -18,7 +18,7 @@ export default function PropertyListings() {
 
   // State for the input field, synchronized with URL 'q' parameter
   const [searchQuery, setSearchQuery] = useState(() => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('q') || "";
   });
 
@@ -26,8 +26,8 @@ export default function PropertyListings() {
   const { data: properties = [], isLoading } = useQuery<Property[]>({
     queryKey: ['properties', filters, location], // Use location directly in queryKey
     queryFn: async () => {
-      const urlParams = new URLSearchParams(location.split('?')[1] || '');
-      const q = urlParams.get('q'); // Get 'q' directly from current location
+      const urlParams = new URLSearchParams(window.location.search);
+      const q = urlParams.get('q'); // Get 'q' from window.location.search
 
       const currentParams = new URLSearchParams();
       let baseUrl = '/api/properties';
@@ -58,7 +58,7 @@ export default function PropertyListings() {
       if (!response.ok) throw new Error('Failed to fetch properties');
       return response.json();
     },
-    enabled: !!new URLSearchParams(location.split('?')[1] || '').get('q') || Object.keys(filters).length > 0, // Enable based on 'q' param or filters
+    enabled: true, // Always enable the query - let the backend handle empty results
   });
 
   // No need for client-side filtering if backend handles search

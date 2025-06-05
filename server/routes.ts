@@ -86,7 +86,13 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Search properties by property ID or address
   app.get("/api/search", async (req, res) => {
     try {
-      const { q } = req.query;
+      const { q, zipCode } = req.query;
+
+      // Handle zipCode parameter sent by frontend for 5-digit ZIP searches
+      if (zipCode) {
+        const searchResults = await storage.searchProperties({ zipCode: zipCode as string });
+        return res.json(searchResults);
+      }
 
       if (!q) {
         return res.status(400).json({ message: "Search query is required" });
