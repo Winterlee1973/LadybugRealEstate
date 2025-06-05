@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import PropertyCard from "@/components/property-card";
-import type { Property } from "@shared/schema";
+import type { Property, Favorite } from "@shared/schema"; // Import Favorite type
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import {
   Select,
@@ -18,9 +18,10 @@ import {
 export default function FavoriteListings() {
   const { user, loading: authLoading } = useAuth(); // Get user and authLoading from AuthContext
   const [sortBy, setSortBy] = useState("newest");
+  const queryClient = useQueryClient(); // Initialize useQueryClient
 
-  const { data: favoriteProperties = [], isLoading, error } = useQuery<Property[]>({
-    queryKey: ['favoriteProperties', user?.id],
+  const { data: favoriteProperties = [], isLoading, error, refetch } = useQuery<Property[]>({ // Add refetch
+    queryKey: ['favorites', user?.id], // Changed queryKey to 'favorites'
     queryFn: async () => {
       if (!user) {
         return []; // Return empty array if no user is logged in
@@ -29,23 +30,44 @@ export default function FavoriteListings() {
       if (!response.ok) {
         throw new Error('Failed to fetch favorite properties');
       }
-      const favoriteIds = await response.json();
+      const favoriteData: Favorite[] = await response.json(); // Use Favorite type
       
       // Fetch details for each favorited property
-      const propertiesPromises = favoriteIds.map(async (fav: { property_id: string }) => { // Corrected to property_id
-        const propResponse = await fetch(`/api/properties/${fav.property_id}`); // Corrected to property_id
-        if (!propResponse.ok) {
-          console.error(`Failed to fetch property ${fav.property_id}`); // Corrected to property_id
-          return null;
-        }
+      const propertiesPromises = favoriteData
+        .filter(fav => fav.propertyId) // Filter out entries with undefined or null propertyId
+        .map(async (fav) => {
+          const propResponse = await fetch(`/api/properties/${fav.propertyId}`);
+          if (!propResponse.ok) {
+            console.error(`Failed to fetch property ${fav.propertyId}`);
+            return null;
+          }
         return propResponse.json();
       });
 
       const properties = await Promise.all(propertiesPromises);
-      return properties.filter(Boolean) as Property[]; // Filter out nulls
+      const filteredProperties = properties.filter(
+        (prop): prop is Property =>
+          prop !== null &&
+          prop !== undefined &&
+          'id' in prop &&
+          'price' in prop && // Ensure price exists
+          'propertyId' in prop // Ensure propertyId exists
+      ) as Property[];
+      console.log('Favorite properties fetched:', filteredProperties);
+      console.log('Sample property data:', filteredProperties[0]);
+      return filteredProperties;
     },
     enabled: !!user && !authLoading, // Only run query if user is logged in and auth is not loading
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: false, // Don't refetch on component mount if data exists
   });
+
+  useEffect(() => {
+   if (user && !authLoading) {
+     refetch(); // Refetch when user is available and auth is not loading
+   }
+ }, [user, authLoading, refetch]);
 
   // Sort properties (reusing logic from PropertyListings)
   const sortedProperties = [...favoriteProperties].sort((a, b) => {
@@ -89,7 +111,7 @@ export default function FavoriteListings() {
     );
   }
 
-  if (!user) {
+  if (!authLoading && !user) {
     return (
       <section className="py-8 bg-light-gray min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -162,7 +184,7 @@ export default function FavoriteListings() {
           </div>
         )}
 
-        {sortedProperties.length > 0 && (
+        {sortedProperties.length >= 10 && (
           <div className="flex justify-center mt-12">
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="icon" disabled>

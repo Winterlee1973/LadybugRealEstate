@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Bed, Bath, Square } from "lucide-react";
-import type { Property } from "@shared/schema";
+import type { Property, Favorite } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query"; // Import useQuery
 
 interface PropertyCardProps {
   property: Property;
@@ -15,31 +14,29 @@ interface PropertyCardProps {
 export default function PropertyCard({ property }: PropertyCardProps) {
   const { user } = useAuth(); // Get user from AuthContext
   const queryClient = useQueryClient(); // Initialize useQueryClient
-  const [isFavorited, setIsFavorited] = useState(false);
 
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (user) {
-        try {
-          const response = await fetch(`/api/favorites/${user.id}`);
-          if (response.ok) {
-            const favorites = await response.json();
-            setIsFavorited(favorites.some((fav: any) => fav.property_id === property.propertyId));
-          }
-        } catch (error) {
-          console.error("Failed to fetch favorites:", error);
-        }
-      }
-    };
-    fetchFavorites();
-  }, [user, property.propertyId]);
+  // Use useQuery to fetch favorites
+  const { data: favorites = [] } = useQuery<Favorite[]>({
+    queryKey: ['favorites', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const response = await fetch(`/api/favorites/${user.id}`);
+      if (!response.ok) throw new Error('Failed to fetch favorites');
+      return response.json();
+    },
+    enabled: !!user, // Only run query if user is logged in
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: false, // Don't refetch on component mount if data exists
+  });
+
+  const isFavorited = favorites.some((fav) => fav.propertyId === property.propertyId);
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!user) {
-      // Optionally, prompt user to log in
       alert("Please log in to favorite properties.");
       return;
     }
@@ -51,8 +48,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           method: "DELETE",
         });
         if (response.ok) {
-          setIsFavorited(false);
-          queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user.id] }); // Invalidate favorite properties query
+          queryClient.invalidateQueries({ queryKey: ['favorites', user.id] }); // Invalidate favorites query
         } else {
           console.error("Failed to remove favorite:", await response.text());
         }
@@ -66,8 +62,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           body: JSON.stringify({ propertyId: property.propertyId, userId: user.id }),
         });
         if (response.ok) {
-          setIsFavorited(true);
-          queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user.id] }); // Invalidate favorite properties query
+          queryClient.invalidateQueries({ queryKey: ['favorites', user.id] }); // Invalidate favorites query
         } else {
           console.error("Failed to add favorite:", await response.text());
         }
@@ -77,12 +72,19 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     }
   };
 
-  const formatPrice = (price: string) => {
+  const formatPrice = (price: string | number | undefined) => {
+    if (price === undefined || price === null) {
+      return "$0"; // Default to $0 or a placeholder if price is undefined/null
+    }
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(numericPrice)) {
+      return "$0"; // Handle cases where parseFloat results in NaN
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
-    }).format(parseFloat(price));
+    }).format(numericPrice);
   };
 
   const mainImage = property.images?.[0] || "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600";
@@ -119,31 +121,33 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               {formatPrice(property.price)}
             </h3>
             <Badge variant="secondary" className="text-xs bg-gray-100">
-              <span className="text-ladybug">LB</span>{property.searchableId}
+              <span className="text-ladybug">LB</span>{property.searchableId || 'N/A'}
             </Badge>
           </div>
 
           <p className="text-medium-gray mb-3">
-            {property.address}, {property.city}, {property.state} {property.zipCode}
+            {[property.address, property.city, property.state, property.zipCode]
+              .filter(Boolean)
+              .join(', ') || 'N/A'}
           </p>
 
           <div className="flex items-center space-x-4 text-sm text-medium-gray mb-3">
             <span className="flex items-center">
               <Bed className="h-4 w-4 text-ladybug mr-1" />
-              {property.bedrooms} Beds
+              {property.bedrooms ?? 'N/A'} Beds
             </span>
             <span className="flex items-center">
               <Bath className="h-4 w-4 text-ladybug mr-1" />
-              {property.bathrooms} Baths
+              {property.bathrooms ?? 'N/A'} Baths
             </span>
             <span className="flex items-center">
               <Square className="h-4 w-4 text-ladybug mr-1" />
-              {property.squareFootage.toLocaleString()} sqft
+              {(property.squareFootage ?? 0).toLocaleString()} sqft
             </span>
           </div>
 
           <p className="text-sm text-medium-gray line-clamp-2">
-            {property.description}
+            {property.description || 'No description available.'}
           </p>
         </CardContent>
       </Card>
