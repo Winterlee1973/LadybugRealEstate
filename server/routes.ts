@@ -244,5 +244,15 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Remove server creation
   // const httpServer = createServer(app);
   // return httpServer;
+  // Secret properties endpoint (no authentication)
+  app.get("/api/secret-properties", async (req, res) => {
+    try {
+      const allProperties = await db.query.properties.findMany();
+      res.json(allProperties);
+    } catch (error) {
+      console.error("Failed to fetch secret properties:", error);
+      res.status(500).json({ message: "Failed to fetch properties from DB" });
+    }
+  });
 }
 

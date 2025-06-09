@@ -15,6 +15,7 @@ import HowItWorks from "@/pages/how-it-works";
 import ProfilePage from "@/pages/profile";
 import SellerAdminPage from "@/pages/seller-admin";
 import FavoriteListings from "@/pages/favorite-listings"; // Import FavoriteListings
+import SecretPropertiesPage from "@/pages/secret-properties"; // Import SecretPropertiesPage
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/profile" component={ProfilePage} />
           <Route path="/favorites" component={FavoriteListings} /> {/* Add new route for favorites */}
           <Route path="/seller-admin" component={SellerAdminPage} />
+          <Route path="/secret-properties" component={SecretPropertiesPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

@@ -18,6 +18,7 @@ export default function Navigation() {
     { href: "/", label: "Find A Home" },
     { href: "/sell-your-home", label: "Sell Your Home" },
     { href: "/how-it-works", label: "How It Works" },
+    { href: "/secret-properties", label: "Secret" },
   ];
 
   const handleSignOut = async () => {
