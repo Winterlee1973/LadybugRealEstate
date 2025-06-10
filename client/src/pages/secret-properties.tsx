@@ -10,12 +10,49 @@ const SecretPropertiesPage: React.FC = () => {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await fetch('/api/secret-properties'); // New API endpoint
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const { supabase } = await import("@/lib/supabase");
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*');
+
+        if (error) {
+          throw error;
         }
-        const data = await response.json();
-        setProperties(data);
+
+        // Transform the data to match the expected Property format
+        const transformedProperties = data?.map(prop => ({
+          id: prop.id,
+          propertyId: prop.property_id,
+          searchableId: prop.searchable_id,
+          title: prop.title,
+          description: prop.description,
+          price: prop.price,
+          address: prop.address,
+          city: prop.city,
+          state: prop.state,
+          zipCode: prop.zip_code,
+          bedrooms: prop.bedrooms,
+          bathrooms: prop.bathrooms,
+          squareFootage: prop.square_footage,
+          lotSize: prop.lot_size,
+          yearBuilt: prop.year_built,
+          propertyType: prop.property_type,
+          status: prop.status,
+          images: prop.images,
+          features: prop.features,
+          hoaFees: prop.hoa_fees,
+          propertyTax: prop.property_tax,
+          agentName: prop.agent_name,
+          agentPhone: prop.agent_phone,
+          agentEmail: prop.agent_email,
+          agentPhoto: prop.agent_photo,
+          agentRating: prop.agent_rating,
+          agentReviews: prop.agent_reviews,
+          createdAt: prop.created_at,
+          userId: prop.user_id
+        })) || [];
+
+        setProperties(transformedProperties);
       } catch (e: any) {
         setError(e.message);
       } finally {

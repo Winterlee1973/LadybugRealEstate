@@ -49,7 +49,53 @@ export default function PropertyDetail() {
   });
 
   const { data: property, isLoading, error } = useQuery<Property>({
-    queryKey: [`/api/properties/${params?.propertyId}`],
+    queryKey: ['property', params?.propertyId],
+    queryFn: async () => {
+      if (!params?.propertyId) throw new Error('Property ID is required');
+      
+      const { supabase } = await import("@/lib/supabase");
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('property_id', params.propertyId)
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error('Property not found');
+
+      // Transform the data to match the expected Property format
+      return {
+        id: data.id,
+        propertyId: data.property_id,
+        searchableId: data.searchable_id,
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zipCode: data.zip_code,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        squareFootage: data.square_footage,
+        lotSize: data.lot_size,
+        yearBuilt: data.year_built,
+        propertyType: data.property_type,
+        status: data.status,
+        images: data.images,
+        features: data.features,
+        hoaFees: data.hoa_fees,
+        propertyTax: data.property_tax,
+        agentName: data.agent_name,
+        agentPhone: data.agent_phone,
+        agentEmail: data.agent_email,
+        agentPhoto: data.agent_photo,
+        agentRating: data.agent_rating,
+        agentReviews: data.agent_reviews,
+        createdAt: data.created_at,
+        userId: data.user_id
+      };
+    },
     enabled: !!params?.propertyId,
   });
 
