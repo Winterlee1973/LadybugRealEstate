@@ -2,3 +2,6 @@ mise.toml
 .mise.toml
 server/
 scripts/
+package-lock.json
+tsconfig.server.json
+.nvmrc
