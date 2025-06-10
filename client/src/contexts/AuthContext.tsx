@@ -25,6 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to ensure user profile exists and fetch role
   const ensureUserProfile = async (userId: string) => {
     try {
+      // Validate Supabase configuration before making requests
+      if (!supabase || !supabase.from) {
+        console.error('Supabase client not properly initialized');
+        return;
+      }
+
       // Check if profile exists
       const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
@@ -57,7 +63,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (error) {
-      console.error(`Exception when ensuring profile for user ${userId}:`, error);
+      // Enhanced error logging to help debug the JSON parsing issue
+      if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
+        console.error(`JSON parsing error when ensuring profile for user ${userId}. This usually means an API call returned HTML instead of JSON. Check Netlify redirects and environment variables.`, error);
+      } else {
+        console.error(`Exception when ensuring profile for user ${userId}:`, error);
+      }
     }
   };
 
