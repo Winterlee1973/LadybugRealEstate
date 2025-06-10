@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import PropertyCard from "@/components/property-card";
+import { supabase } from "@/lib/supabase";
 import type { Property } from "@shared/schema";
 import type { SearchFilters } from "@/lib/types";
 
@@ -29,34 +30,39 @@ export default function PropertyListings() {
       const urlParams = new URLSearchParams(window.location.search);
       const q = urlParams.get('q'); // Get 'q' from window.location.search
 
-      const currentParams = new URLSearchParams();
-      let baseUrl = '/api/properties';
+      let query = supabase.from('properties').select('*');
 
+      // Apply search filters
       if (q) {
-        baseUrl = '/api/search';
         // Check if 'q' is a 5-digit zip code
         if (/^\d{5}$/.test(q)) {
-          currentParams.append('zipCode', q);
+          query = query.eq('zip_code', q);
         } else {
-          currentParams.append('q', q);
+          // Search in title, description, address, or city
+          query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%,address.ilike.%${q}%,city.ilike.%${q}%`);
         }
       }
 
-      if (filters.priceMin) currentParams.append('priceMin', filters.priceMin.toString());
-      if (filters.priceMax) currentParams.append('priceMax', filters.priceMax.toString());
-      if (filters.bedrooms) currentParams.append('bedrooms', filters.bedrooms.toString());
-      if (filters.bathrooms) currentParams.append('bathrooms', filters.bathrooms.toString());
-      if (filters.city) currentParams.append('city', filters.city);
-      if (filters.propertyType) currentParams.append('propertyType', filters.propertyType);
-
-      let url = baseUrl;
-      if (currentParams.toString()) {
-        url += `?${currentParams.toString()}`;
+      // Apply price filters
+      if (filters.priceMin) {
+        const priceMin = parseInt(filters.priceMin.toString().replace(/[,$]/g, ''));
+        query = query.gte('price', priceMin.toString());
+      }
+      if (filters.priceMax) {
+        const priceMax = parseInt(filters.priceMax.toString().replace(/[,$]/g, ''));
+        query = query.lte('price', priceMax.toString());
       }
 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch properties');
-      return response.json();
+      // Apply other filters
+      if (filters.bedrooms) query = query.eq('bedrooms', filters.bedrooms);
+      if (filters.bathrooms) query = query.eq('bathrooms', filters.bathrooms);
+      if (filters.city) query = query.ilike('city', `%${filters.city}%`);
+      if (filters.propertyType) query = query.eq('property_type', filters.propertyType);
+
+      const { data, error } = await query;
+      
+      if (error) throw new Error(`Failed to fetch properties: ${error.message}`);
+      return data || [];
     },
     enabled: true, // Always enable the query - let the backend handle empty results
   });
