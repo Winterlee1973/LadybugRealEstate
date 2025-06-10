@@ -1,5 +1,5 @@
-import { properties, favorites, inquiries, profiles, type Property, type InsertProperty, type Favorite, type InsertFavorite, type Inquiry, type InsertInquiry, type Profile, type InsertProfile } from "@shared/schema";
-import { db } from './db';
+import { properties, favorites, inquiries, profiles, type Property, type InsertProperty, type Favorite, type InsertFavorite, type Inquiry, type InsertInquiry, type Profile, type InsertProfile } from "../shared/schema.js";
+import { db } from './db.js';
 import { eq, gte, lte, ilike, and, or, sql } from 'drizzle-orm';
 
 export interface IStorage {

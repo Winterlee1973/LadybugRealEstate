@@ -1,10 +1,10 @@
 import type { Express } from "express";
 // Remove createServer and type Server import
-import { storage } from "./storage";
-import { insertInquirySchema, properties } from "@shared/schema";
+import { storage } from "./storage.js";
+import { insertInquirySchema, properties } from "../shared/schema.js";
 import { z } from "zod";
-import { log } from "./vite";
-import { db } from "./db"; // Import db
+import { log } from "./vite.js";
+import { db } from "./db.js"; // Import db
 import { eq } from "drizzle-orm"; // Import eq
 
 // Modify function signature and remove server creation
