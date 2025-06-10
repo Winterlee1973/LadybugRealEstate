@@ -159,9 +159,11 @@ export default function Navigation() {
                     Seller Admin
                   </Link>
                 )}
-                <Button className="ladybug-primary mt-4">
-                  Login
-                </Button>
+                <AuthModal>
+                  <Button className="ladybug-primary mt-4">
+                    Login
+                  </Button>
+                </AuthModal>
               </div>
             </SheetContent>
           </Sheet>

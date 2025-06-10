@@ -2,18 +2,32 @@ import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react"; // Import useState
 import { Heart, Bed, Bath, Square } from "lucide-react";
 import type { Property, Favorite } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { useQueryClient, useQuery } from "@tanstack/react-query"; // Import useQuery
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
 interface PropertyCardProps {
   property: Property;
+  isFavoritedProp?: boolean; // Add optional prop for favorite status
 }
 
-export default function PropertyCard({ property }: PropertyCardProps) {
+export default function PropertyCard({ property, isFavoritedProp }: PropertyCardProps) {
   const { user } = useAuth(); // Get user from AuthContext
   const queryClient = useQueryClient(); // Initialize useQueryClient
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false); // State for AlertDialog
 
   // Use useQuery to fetch favorites
   const { data: favorites = [] } = useQuery<string[]>({
@@ -29,18 +43,15 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       if (error) throw error;
       return data?.map(fav => fav.property_id) || [];
     },
-    enabled: !!user, // Only run query if user is logged in
+    enabled: !!user && isFavoritedProp === undefined, // Only run query if user is logged in and prop is not provided
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
     refetchOnMount: false, // Don't refetch on component mount if data exists
   });
 
-  const isFavorited = favorites.includes(property.propertyId);
+  const isFavorited = isFavoritedProp !== undefined ? isFavoritedProp : favorites.includes(property.propertyId);
 
-  const toggleFavorite = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleToggleFavorite = async () => {
     if (!user) {
       alert("Please log in to favorite properties.");
       return;
@@ -76,6 +87,18 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       }
     } catch (error) {
       console.error("Error toggling favorite:", error);
+    } finally {
+      setIsAlertDialogOpen(false); // Close dialog after action
+    }
+  };
+
+  const toggleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isFavorited) {
+      setIsAlertDialogOpen(true); // Open dialog if already favorited
+    } else {
+      handleToggleFavorite(); // Directly toggle if not favorited
     }
   };
 
@@ -105,18 +128,34 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             alt={property.title}
             className="w-full h-48 object-cover rounded-t-lg"
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-3 right-3 w-8 h-8 bg-white/80 hover:bg-white rounded-full"
-            onClick={toggleFavorite}
-          >
-            <Heart
-              className={`h-4 w-4 ${
-                isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
-              }`}
-            />
-          </Button>
+          <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-3 right-3 w-8 h-8 bg-white/80 hover:bg-white rounded-full"
+                onClick={toggleFavoriteClick}
+              >
+                <Heart
+                  className={`h-4 w-4 ${
+                    isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
+                  }`}
+                />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to Un-Favorite this property?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action will remove this property from your favorites list.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleToggleFavorite}>Un-Favorite</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Badge className="absolute bottom-3 left-3 bg-green-500 text-white">
             For Sale
           </Badge>

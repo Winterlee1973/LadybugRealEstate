@@ -214,7 +214,7 @@ export default function FavoriteListings() {
         ) : (
           <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
             {sortedProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
+              <PropertyCard key={property.id} property={property} isFavoritedProp={true} />
             ))}
           </div>
         )}
