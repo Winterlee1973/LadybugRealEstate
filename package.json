@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && cp public/_redirects dist/_redirects && tsc --project tsconfig.server.json",
+    "build": "vite build && cp public/_redirects dist/_redirects",
+    "build:server": "tsc --project tsconfig.server.json",
     "start": "NODE_ENV=development tsx server/index.ts",
     "start:prod": "NODE_ENV=production node dist/server/index.js",
     "check": "tsc",
