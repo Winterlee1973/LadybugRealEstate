@@ -25,31 +25,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to ensure user profile exists and fetch role
   const ensureUserProfile = async (userId: string) => {
     try {
-      const response = await fetch(`/api/profile/${userId}`);
-      if (response.ok) {
-        // Profile exists, fetch and set role
-        const data = await response.json();
-        setRole(data.role);
+      // Check if profile exists
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, other errors are actual problems
+        console.error(`Error checking profile for user ${userId}:`, fetchError);
+        return;
+      }
+
+      if (existingProfile) {
+        // Profile exists, set role
+        setRole(existingProfile.role);
         console.log(`Profile exists and role fetched for user ${userId}`);
-      } else if (response.status === 404) {
+      } else {
         // Profile does not exist, create it with default role 'buyer'
         console.log(`Profile not found for user ${userId}, creating...`);
-        const createResponse = await fetch('/api/profile', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ id: userId, role: 'buyer' }),
-        });
-        if (createResponse.ok) {
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({ id: userId, role: 'buyer' });
+
+        if (!createError) {
           setRole('buyer'); // Set default role after creation
           console.log(`Profile created for user ${userId}`);
         } else {
-          console.error(`Failed to create profile for user ${userId}:`, await createResponse.text());
+          console.error(`Failed to create profile for user ${userId}:`, createError);
         }
-      } else {
-        // Other error
-        console.error(`Error checking profile for user ${userId}:`, await response.text());
       }
     } catch (error) {
       console.error(`Exception when ensuring profile for user ${userId}:`, error);
