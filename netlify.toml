@@ -1,7 +1,10 @@
 # netlify.toml
 [build]
-  command = "npx vite build"
+  command = "npm install && npx vite build"
   publish = "dist"
+  
+[build.environment]
+  NODE_VERSION = "18"
 
 [dev]
   command = "npm run dev"
