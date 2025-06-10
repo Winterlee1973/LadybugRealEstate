@@ -1,11 +1,10 @@
 # netlify.toml
 [build]
-  command = "npm ci && npx vite build"
+  command = "npm install && npx vite build && cp public/_redirects dist/_redirects"
   publish = "dist"
   
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--omit=optional"
 
 [[redirects]]
   from = "/*"
