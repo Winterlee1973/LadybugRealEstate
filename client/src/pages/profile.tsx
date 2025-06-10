@@ -35,12 +35,30 @@ export default function ProfilePage() {
     if (!user?.id) return;
     setProfileLoading(true);
     try {
-      const response = await fetch(`/api/profile/${user.id}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch profile");
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
       }
-      const data: Profile = await response.json();
-      setRole(data.role as "buyer" | "seller");
+
+      if (data) {
+        setRole(data.role as "buyer" | "seller");
+      } else {
+        // Profile doesn't exist, create it with default role
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, role: 'buyer' });
+        
+        if (!createError) {
+          setRole('buyer');
+        } else {
+          throw createError;
+        }
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast({
@@ -85,16 +103,13 @@ export default function ProfilePage() {
     const originalRole = role; // Store the current role
     setLoading(true);
     try {
-      const response = await fetch(`/api/profile/${user?.id}/role`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ role: newRole }),
-      });
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', user?.id);
 
-      if (!response.ok) {
-        throw new Error("Failed to update role");
+      if (error) {
+        throw error;
       }
 
       setRole(newRole);

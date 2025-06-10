@@ -8,9 +8,8 @@
   NPM_CONFIG_PRODUCTION = "false"
   DISABLE_NETLIFY_DEV = "true"
 
-# Handle SPA routing - redirect all non-file requests to index.html
+# Handle SPA routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false

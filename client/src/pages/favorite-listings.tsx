@@ -26,36 +26,71 @@ export default function FavoriteListings() {
       if (!user) {
         return []; // Return empty array if no user is logged in
       }
-      const response = await fetch(`/api/favorites/${user.id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch favorite properties');
-      }
-      const favoriteData: Favorite[] = await response.json(); // Use Favorite type
       
-      // Fetch details for each favorited property
-      const propertiesPromises = favoriteData
-        .filter(fav => fav.propertyId) // Filter out entries with undefined or null propertyId
-        .map(async (fav) => {
-          const propResponse = await fetch(`/api/properties/${fav.propertyId}`);
-          if (!propResponse.ok) {
-            console.error(`Failed to fetch property ${fav.propertyId}`);
-            return null;
-          }
-        return propResponse.json();
-      });
+      const { supabase } = await import("@/lib/supabase");
+      
+      // First get the favorite property IDs
+      const { data: favoriteData, error: favError } = await supabase
+        .from('favorites')
+        .select('property_id')
+        .eq('user_id', user.id);
 
-      const properties = await Promise.all(propertiesPromises);
-      const filteredProperties = properties.filter(
-        (prop): prop is Property =>
-          prop !== null &&
-          prop !== undefined &&
-          'id' in prop &&
-          'price' in prop && // Ensure price exists
-          'propertyId' in prop // Ensure propertyId exists
-      ) as Property[];
-      console.log('Favorite properties fetched:', filteredProperties);
-      console.log('Sample property data:', filteredProperties[0]);
-      return filteredProperties;
+      if (favError) {
+        throw favError;
+      }
+
+      if (!favoriteData || favoriteData.length === 0) {
+        return [];
+      }
+
+      // Get the property IDs
+      const propertyIds = favoriteData.map(fav => fav.property_id);
+
+      // Fetch the properties
+      const { data: properties, error: propError } = await supabase
+        .from('properties')
+        .select('*')
+        .in('property_id', propertyIds);
+
+      if (propError) {
+        throw propError;
+      }
+
+      // Transform the data to match the expected Property format
+      const transformedProperties = properties?.map(prop => ({
+        id: prop.id,
+        propertyId: prop.property_id,
+        searchableId: prop.searchable_id,
+        title: prop.title,
+        description: prop.description,
+        price: prop.price,
+        address: prop.address,
+        city: prop.city,
+        state: prop.state,
+        zipCode: prop.zip_code,
+        bedrooms: prop.bedrooms,
+        bathrooms: prop.bathrooms,
+        squareFootage: prop.square_footage,
+        lotSize: prop.lot_size,
+        yearBuilt: prop.year_built,
+        propertyType: prop.property_type,
+        status: prop.status,
+        images: prop.images,
+        features: prop.features,
+        hoaFees: prop.hoa_fees,
+        propertyTax: prop.property_tax,
+        agentName: prop.agent_name,
+        agentPhone: prop.agent_phone,
+        agentEmail: prop.agent_email,
+        agentPhoto: prop.agent_photo,
+        agentRating: prop.agent_rating,
+        agentReviews: prop.agent_reviews,
+        createdAt: prop.created_at,
+        userId: prop.user_id
+      })) || [];
+
+      console.log('Favorite properties fetched:', transformedProperties);
+      return transformedProperties;
     },
     enabled: !!user && !authLoading, // Only run query if user is logged in and auth is not loading
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes

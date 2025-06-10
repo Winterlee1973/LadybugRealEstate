@@ -16,13 +16,18 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const queryClient = useQueryClient(); // Initialize useQueryClient
 
   // Use useQuery to fetch favorites
-  const { data: favorites = [] } = useQuery<Favorite[]>({
+  const { data: favorites = [] } = useQuery<string[]>({
     queryKey: ['favorites', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const response = await fetch(`/api/favorites/${user.id}`);
-      if (!response.ok) throw new Error('Failed to fetch favorites');
-      return response.json();
+      const { supabase } = await import("@/lib/supabase");
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('property_id')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return data?.map(fav => fav.property_id) || [];
     },
     enabled: !!user, // Only run query if user is logged in
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
@@ -30,7 +35,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     refetchOnMount: false, // Don't refetch on component mount if data exists
   });
 
-  const isFavorited = favorites.some((fav) => fav.propertyId === property.propertyId);
+  const isFavorited = favorites.includes(property.propertyId);
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -42,29 +47,31 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     }
 
     try {
+      const { supabase } = await import("@/lib/supabase");
+      
       if (isFavorited) {
         // Remove from favorites
-        const response = await fetch(`/api/favorites/${property.propertyId}/${user.id}`, {
-          method: "DELETE",
-        });
-        if (response.ok) {
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('property_id', property.propertyId)
+          .eq('user_id', user.id);
+
+        if (!error) {
           queryClient.invalidateQueries({ queryKey: ['favorites', user.id] }); // Invalidate favorites query
         } else {
-          console.error("Failed to remove favorite:", await response.text());
+          console.error("Failed to remove favorite:", error);
         }
       } else {
         // Add to favorites
-        const response = await fetch("/api/favorites", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ propertyId: property.propertyId, userId: user.id }),
-        });
-        if (response.ok) {
+        const { error } = await supabase
+          .from('favorites')
+          .insert({ property_id: property.propertyId, user_id: user.id });
+
+        if (!error) {
           queryClient.invalidateQueries({ queryKey: ['favorites', user.id] }); // Invalidate favorites query
         } else {
-          console.error("Failed to add favorite:", await response.text());
+          console.error("Failed to add favorite:", error);
         }
       }
     } catch (error) {

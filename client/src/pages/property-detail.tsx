@@ -57,9 +57,14 @@ export default function PropertyDetail() {
     queryKey: ["favoriteProperties", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const response = await fetch(`/api/favorites/${user.id}`);
-      if (!response.ok) throw new Error("Failed to fetch favorites");
-      return response.json();
+      const { supabase } = await import("@/lib/supabase");
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('property_id')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.id, // Only run if user is logged in
   });
@@ -98,12 +103,17 @@ export default function PropertyDetail() {
     }
 
     try {
+      const { supabase } = await import("@/lib/supabase");
+      
       if (isFavorited) {
         // Remove from favorites
-        const response = await fetch(`/api/favorites/${params.propertyId}/${user.id}`, {
-          method: "DELETE",
-        });
-        if (response.ok) {
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('property_id', params.propertyId)
+          .eq('user_id', user.id);
+
+        if (!error) {
           setIsFavorited(false);
           toast({
             title: "Removed from favorites",
@@ -114,7 +124,7 @@ export default function PropertyDetail() {
             queryKey: ["favoriteProperties", user.id],
           });
         } else {
-          console.error("Failed to remove favorite:", await response.text());
+          console.error("Failed to remove favorite:", error);
           toast({
             title: "Error",
             description: "Failed to remove from favorites. Please try again.",
@@ -123,14 +133,11 @@ export default function PropertyDetail() {
         }
       } else {
         // Add to favorites
-        const response = await fetch("/api/favorites", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ propertyId: params.propertyId, userId: user.id }),
-        });
-        if (response.ok) {
+        const { error } = await supabase
+          .from('favorites')
+          .insert({ property_id: params.propertyId, user_id: user.id });
+
+        if (!error) {
           setIsFavorited(true);
           toast({
             title: "Added to favorites",
@@ -141,7 +148,7 @@ export default function PropertyDetail() {
             queryKey: ["favoriteProperties", user.id],
           });
         } else {
-          console.error("Failed to add favorite:", await response.text());
+          console.error("Failed to add favorite:", error);
           toast({
             title: "Error",
             description: "Failed to add to favorites. Please try again.",
@@ -164,16 +171,19 @@ export default function PropertyDetail() {
     e.preventDefault();
     
     try {
-      const response = await fetch("/api/inquiries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...contactForm,
-          propertyId: params?.propertyId,
-        }),
-      });
+      const { supabase } = await import("@/lib/supabase");
+      const { error } = await supabase
+        .from('inquiries')
+        .insert({
+          property_id: params?.propertyId,
+          name: contactForm.name,
+          email: contactForm.email,
+          phone: contactForm.phone,
+          message: contactForm.message,
+          inquiry_type: contactForm.inquiryType,
+        });
 
-      if (!response.ok) throw new Error("Failed to send inquiry");
+      if (error) throw error;
 
       toast({
         title: "Inquiry sent!",
@@ -189,6 +199,7 @@ export default function PropertyDetail() {
         inquiryType: "general"
       });
     } catch (error) {
+      console.error("Error sending inquiry:", error);
       toast({
         title: "Error",
         description: "Failed to send inquiry. Please try again.",
