@@ -254,5 +254,6 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.status(500).json({ message: "Failed to fetch properties from DB" });
     }
   });
+
 }
 
