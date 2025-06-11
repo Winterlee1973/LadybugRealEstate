@@ -46,11 +46,11 @@ export default function PropertyListings() {
       // Apply price filters
       if (filters.priceMin) {
         const priceMin = parseInt(filters.priceMin.toString().replace(/[,$]/g, ''));
-        query = query.gte('price', priceMin.toString());
+        query = query.gte('price', priceMin);
       }
       if (filters.priceMax) {
         const priceMax = parseInt(filters.priceMax.toString().replace(/[,$]/g, ''));
-        query = query.lte('price', priceMax.toString());
+        query = query.lte('price', priceMax);
       }
 
       // Apply other filters
