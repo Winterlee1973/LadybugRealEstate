@@ -9,6 +9,7 @@
     "build": "vite build && cp public/_redirects dist/_redirects",
     "build:server": "tsc --project tsconfig.server.json",
     "start": "vite preview",
+    "start:local": "npm run dev:full",
     "start:prod": "NODE_ENV=production node dist/server/index.js",
     "mcp:install": "cd mcp-server && npm install",
     "mcp:build": "cd mcp-server && npm run build",

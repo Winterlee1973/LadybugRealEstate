@@ -4,7 +4,14 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 export default defineConfig({
+  define: {
+    'process.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
+    'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY),
+  },
   plugins: [
     react(),
     runtimeErrorOverlay(),
