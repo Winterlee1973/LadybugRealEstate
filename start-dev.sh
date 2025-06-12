@@ -11,7 +11,7 @@ pkill -f "vite"             2>/dev/null || true
 pushd mcp-server >/dev/null
 npm ci
 npm run build
-PORT="${MCP_PORT:-9002}" NODE_ENV=development npm start &
+NODE_ENV=development npm start &
 MCP_PID=$!
 popd >/dev/null
 
