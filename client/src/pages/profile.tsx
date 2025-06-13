@@ -195,7 +195,7 @@ export default function ProfilePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john.doe@example.com"
-                disabled={true}
+                readOnly={true}
               />
             </div>
             <div>

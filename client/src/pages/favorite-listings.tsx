@@ -21,7 +21,7 @@ export default function FavoriteListings() {
   const queryClient = useQueryClient(); // Initialize useQueryClient
 
   const { data: favoriteProperties = [], isLoading, error, refetch } = useQuery<Property[]>({ // Add refetch
-    queryKey: ['favorites', user?.id], // Changed queryKey to 'favorites'
+    queryKey: ['favoriteProperties', user?.id], // Changed queryKey to 'favoriteProperties'
     queryFn: async () => {
       if (!user) {
         return []; // Return empty array if no user is logged in
@@ -214,7 +214,7 @@ export default function FavoriteListings() {
         ) : (
           <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
             {sortedProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} isFavoritedProp={true} />
+              <PropertyCard key={property.propertyId} property={property} isFavoritedProp={true} />
             ))}
           </div>
         )}

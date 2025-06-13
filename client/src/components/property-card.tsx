@@ -71,6 +71,7 @@ export default function PropertyCard({ property, isFavoritedProp }: PropertyCard
 
         if (!error) {
           queryClient.invalidateQueries({ queryKey: ['favorites', user.id] }); // Invalidate favorites query
+          queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user.id] }); // Invalidate favorite properties query
         } else {
           console.error("Failed to remove favorite:", error);
         }
@@ -82,6 +83,7 @@ export default function PropertyCard({ property, isFavoritedProp }: PropertyCard
 
         if (!error) {
           queryClient.invalidateQueries({ queryKey: ['favorites', user.id] }); // Invalidate favorites query
+          queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user.id] }); // Invalidate favorite properties query
         } else {
           console.error("Failed to add favorite:", error);
         }
