@@ -179,7 +179,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, []) // Empty dependency array - setState is stable and listeners should only be set up once
 
   return {
     ...state,

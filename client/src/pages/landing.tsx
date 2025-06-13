@@ -75,7 +75,7 @@ export default function Landing() {
                 placeholder="Enter Property ID (e.g. LB1234) or Zip Code"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 className="flex-1 border-0 focus-visible:ring-0 text-dark-gray placeholder:text-medium-gray"
               />
               <Button
@@ -99,7 +99,7 @@ export default function Landing() {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card key={index} className="bg-white hover:shadow-md transition-shadow">
+                <Card key={feature.title} className="bg-white hover:shadow-md transition-shadow">
                   <CardContent className="p-8 text-center">
                     <div className="w-16 h-16 bg-[hsl(var(--ladybug))]/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <Icon className="h-8 w-8 text-ladybug" />

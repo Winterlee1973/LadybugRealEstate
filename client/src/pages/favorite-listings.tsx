@@ -102,7 +102,7 @@ export default function FavoriteListings() {
    if (user && !authLoading) {
      refetch(); // Refetch when user is available and auth is not loading
    }
- }, [user, authLoading, refetch]);
+ }, [user, authLoading]); // refetch is stable from React Query, no need to include it
 
   // Sort properties (reusing logic from PropertyListings)
   const sortedProperties = [...favoriteProperties].sort((a, b) => {
@@ -125,7 +125,7 @@ export default function FavoriteListings() {
           <h1 className="text-3xl font-bold text-dark-gray mb-2">Your Favorite Properties</h1>
           <p className="text-medium-gray">Loading user session...</p>
           <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6 mt-8">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 3 }, (_, i) => (
               <Card key={i} className="bg-white">
                 <Skeleton className="h-48 w-full rounded-t-lg" />
                 <CardContent className="p-4">
@@ -188,7 +188,7 @@ export default function FavoriteListings() {
 
         {isLoading ? (
           <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 6 }, (_, i) => (
               <Card key={i} className="bg-white">
                 <Skeleton className="h-48 w-full rounded-t-lg" />
                 <CardContent className="p-4">

@@ -1,10 +1,17 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Property } from '@shared/schema'; // Import Property type
 
@@ -32,6 +39,7 @@ export default function SellerAdminPage() {
   const [loading, setLoading] = useState(false);
   const [existingListings, setExistingListings] = useState<Property[]>([]);
   const [fetchingListings, setFetchingListings] = useState(true);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
 
 
@@ -148,16 +156,16 @@ export default function SellerAdminPage() {
       state,
       zipCode,
       description,
-      price: parseFloat(price),
-      bedrooms: parseInt(bedrooms, 10),
-      bathrooms: parseFloat(bathrooms),
-      squareFootage: parseInt(squareFootage, 10),
+      price: isNaN(parseFloat(price)) ? 0 : parseFloat(price),
+      bedrooms: isNaN(parseInt(bedrooms, 10)) ? 0 : parseInt(bedrooms, 10),
+      bathrooms: isNaN(parseFloat(bathrooms)) ? 0 : parseFloat(bathrooms),
+      squareFootage: isNaN(parseInt(squareFootage, 10)) ? 0 : parseInt(squareFootage, 10),
       propertyType,
       lotSize: lotSize || null,
-      yearBuilt: yearBuilt ? parseInt(yearBuilt, 10) : null,
+      yearBuilt: yearBuilt ? (isNaN(parseInt(yearBuilt, 10)) ? 0 : parseInt(yearBuilt, 10)) : null,
       features: featuresArray,
-      hoaFees: hoaFees ? parseFloat(hoaFees) : null,
-      propertyTax: propertyTax ? parseFloat(propertyTax) : null,
+      hoaFees: hoaFees ? (isNaN(parseFloat(hoaFees)) ? 0 : parseFloat(hoaFees)) : null,
+      propertyTax: propertyTax ? (isNaN(parseFloat(propertyTax)) ? 0 : parseFloat(propertyTax)) : null,
       images: imageUrls,
       userId: user.id,
     };
@@ -197,10 +205,9 @@ export default function SellerAdminPage() {
       setHoaFees("");
       setPropertyTax("");
       setImages([]);
-      // Reset file input
-      const fileInput = document.getElementById('images') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
+      // Reset file input using ref instead of DOM manipulation
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
       
       // Refresh listings
@@ -287,22 +294,20 @@ export default function SellerAdminPage() {
             
             <div>
               <Label htmlFor="propertyType">Property Type *</Label>
-              <select
-                id="propertyType"
-                value={propertyType}
-                onChange={(e) => setPropertyType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Property Type</option>
-                <option value="single-family">Single Family Home</option>
-                <option value="condo">Condominium</option>
-                <option value="townhouse">Townhouse</option>
-                <option value="apartment">Apartment</option>
-                <option value="duplex">Duplex</option>
-                <option value="land">Land</option>
-                <option value="commercial">Commercial</option>
-              </select>
+              <Select value={propertyType} onValueChange={setPropertyType} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Property Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="single-family">Single Family Home</SelectItem>
+                  <SelectItem value="condo">Condominium</SelectItem>
+                  <SelectItem value="townhouse">Townhouse</SelectItem>
+                  <SelectItem value="apartment">Apartment</SelectItem>
+                  <SelectItem value="duplex">Duplex</SelectItem>
+                  <SelectItem value="land">Land</SelectItem>
+                  <SelectItem value="commercial">Commercial</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
@@ -424,6 +429,7 @@ export default function SellerAdminPage() {
             <div>
               <Label htmlFor="images">Property Images</Label>
               <Input
+                ref={fileInputRef}
                 id="images"
                 type="file"
                 multiple

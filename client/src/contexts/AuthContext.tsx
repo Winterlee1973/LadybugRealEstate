@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<"buyer" | "seller" | null>(null); // Add role state
 
   // Function to ensure user profile exists and fetch role
-  const ensureUserProfile = async (userId: string) => {
+  const ensureUserProfile = useCallback(async (userId: string) => {
     try {
       // Validate Supabase configuration before making requests
       if (!supabase || !supabase.from) {
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error(`Exception when ensuring profile for user ${userId}:`, error);
       }
     }
-  };
+  }, []); // Empty dependency array since this function doesn't depend on any state
 
   useEffect(() => {
     let mounted = true;
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [ensureUserProfile]); // Include ensureUserProfile in dependencies
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

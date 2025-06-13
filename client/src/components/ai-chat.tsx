@@ -131,7 +131,7 @@ export default function AIChat({ propertyId }: AIChatProps) {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Ask about this property..."
-            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
             className="flex-1"
           />
           <Button onClick={handleSendMessage} size="icon" className="ladybug-primary">

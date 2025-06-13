@@ -25,7 +25,6 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property, isFavoritedProp }: PropertyCardProps) {
-  console.log('PropertyCard received property:', property.propertyId); // Debug log
   const { user } = useAuth(); // Get user from AuthContext
   const queryClient = useQueryClient(); // Initialize useQueryClient
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false); // State for AlertDialog
@@ -128,7 +127,7 @@ export default function PropertyCard({ property, isFavoritedProp }: PropertyCard
         <Link href={`/property/${property.propertyId}`}>
           <img
             src={mainImage}
-            alt={property.title}
+            alt={property.title || "Property image"}
             className="w-full h-48 object-cover rounded-t-lg cursor-pointer"
           />
         </Link>

@@ -64,9 +64,7 @@ export default function PropertyListings() {
       if (error) throw new Error(`Failed to fetch properties: ${error.message}`);
       
       // Transform the data to match the expected Property format
-      console.log('Raw property data:', data?.[0]); // Debug log
       return (data || []).map(item => {
-        console.log('Transforming item:', item.property_id); // Debug log
         return {
         id: item.id,
         propertyId: item.property_id,
@@ -186,7 +184,7 @@ export default function PropertyListings() {
                   placeholder="Enter Property ID or Zip Code"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   className="flex-1 min-w-64"
                 />
                 

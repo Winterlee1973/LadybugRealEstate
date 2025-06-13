@@ -116,11 +116,9 @@ export default function PropertyDetail() {
   });
 
   useEffect(() => {
-    console.log("useEffect triggered. Favorites:", favorites, "Property ID:", params?.propertyId);
     if (favorites && params?.propertyId) {
       const isCurrentlyFavorited = favorites.some((fav: any) => fav.property_id === params.propertyId);
       setIsFavorited(isCurrentlyFavorited);
-      console.log("Is Favorited set to:", isCurrentlyFavorited);
     } else {
       setIsFavorited(false); // Ensure it's false if no favorites or propertyId
     }
@@ -307,12 +305,14 @@ export default function PropertyDetail() {
   };
 
   const nextImage = () => {
+    if (!property?.images?.length) return;
     setSelectedImageIndex((prev) => 
       prev === property.images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
+    if (!property?.images?.length) return;
     setSelectedImageIndex((prev) => 
       prev === 0 ? property.images.length - 1 : prev - 1
     );
@@ -394,7 +394,7 @@ export default function PropertyDetail() {
                 <div className="grid grid-cols-5 gap-2 mt-4">
                   {property.images.slice(0, 5).map((image: string, index: number) => (
                     <img
-                      key={index}
+                      key={`thumb-${index}`}
                       src={image}
                       alt={`Property view ${index + 1}`}
                       className={`w-full h-20 object-cover rounded-lg cursor-pointer transition-opacity ${
@@ -444,8 +444,8 @@ export default function PropertyDetail() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-dark-gray mb-4">Key Features</h3>
                   <div className="grid md:grid-cols-2 gap-3">
-                    {property.features.map((feature: string, index: number) => (
-                      <div key={index} className="flex items-center">
+                    {property.features?.map((feature: string, index: number) => (
+                      <div key={`feature-${index}-${feature.slice(0, 10)}`} className="flex items-center">
                         <Check className="h-4 w-4 text-ladybug mr-2" />
                         <span className="text-medium-gray">{feature}</span>
                       </div>
@@ -524,7 +524,7 @@ export default function PropertyDetail() {
                       <div className="flex text-yellow-400 text-sm mr-2">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star 
-                            key={i} 
+                            key={`star-${i}`} 
                             className={`h-3 w-3 ${i < Math.floor(parseFloat(property.agentRating || "0")) ? "fill-current" : ""}`} 
                           />
                         ))}
