@@ -75,7 +75,7 @@ export default function Navigation() {
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full focus:ring-0 focus:ring-offset-0 hover:bg-transparent">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
                         <AvatarFallback>
@@ -109,7 +109,7 @@ export default function Navigation() {
                     )}
                     <Link href="/favorites">
                       <DropdownMenuItem>
-                        <Heart className="mr-2 h-4 w-4" />
+                        <Heart className="mr-2 h-4 w-4 fill-red-500 text-red-500" />
                         <span>Favorites</span>
                       </DropdownMenuItem>
                     </Link>
@@ -185,7 +185,7 @@ export default function Navigation() {
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Heart className="h-5 w-5" />
+                      <Heart className="h-5 w-5 fill-red-500 text-red-500" />
                       <span>Favorites</span>
                     </Link>
                     <Button

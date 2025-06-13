@@ -1,11 +1,10 @@
 import type { Express } from "express";
 // Remove createServer and type Server import
 import { storage } from "./storage.js";
-import { insertInquirySchema, properties } from "../shared/schema.js";
+import { insertInquirySchema } from "../shared/schema.js";
 import { z } from "zod";
 import { log } from "./vite.js";
 import { db } from "./db.js"; // Import db
-import { eq } from "drizzle-orm"; // Import eq
 
 // Modify function signature and remove server creation
 export async function registerRoutes(app: Express): Promise<void> {
@@ -245,7 +244,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   // const httpServer = createServer(app);
   // return httpServer;
   // Secret properties endpoint (no authentication)
-  app.get("/api/secret-properties", async (req, res) => {
+  app.get("/api/secret-properties", async (_req, res) => {
     try {
       const allProperties = await db.query.properties.findMany();
       res.json(allProperties);

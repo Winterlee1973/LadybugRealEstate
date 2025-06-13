@@ -62,6 +62,42 @@ A next-generation real estate platform designed to empower homeowners with flexi
 - **Drizzle Kit**: Database migration and introspection tools
 - **TSX**: TypeScript execution for scripts
 
+## ⚠️ Important Architecture Notes
+
+### Direct Supabase Integration Required
+
+**This application uses direct Supabase client calls instead of API endpoints for data operations.** This architectural decision is necessary for Netlify deployment compatibility and ensures optimal performance.
+
+#### Key Implementation Details:
+- ✅ **Client-side data operations**: All property creation, fetching, and user operations use the Supabase client directly
+- ✅ **Authentication**: Handled entirely through Supabase Auth
+- ✅ **File uploads**: Images and assets uploaded directly to Supabase Storage
+- ⚠️ **API endpoints**: Limited to non-data operations only (search, utilities)
+
+#### Why This Architecture:
+1. **Netlify Compatibility**: Direct Supabase calls work seamlessly with Netlify's serverless functions
+2. **Performance**: Eliminates the need for API middleware, reducing latency
+3. **Real-time Features**: Direct access to Supabase's real-time capabilities
+4. **Simplified Deployment**: No need to manage API server state or connections
+
+#### Development Guidelines:
+- **DO**: Use Supabase client directly for all CRUD operations
+- **DON'T**: Create API endpoints for basic data operations
+- **EXCEPTION**: Search and utility functions may use API endpoints if needed
+
+```typescript
+// ✅ Correct approach - Direct Supabase
+const { data, error } = await supabase
+  .from('properties')
+  .insert([propertyData]);
+
+// ❌ Avoid - API endpoint for data operations
+const response = await fetch('/api/properties', {
+  method: 'POST',
+  body: JSON.stringify(propertyData)
+});
+```
+
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed on your system:

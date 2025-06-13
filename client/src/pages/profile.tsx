@@ -4,10 +4,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Import RadioGroup components
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import type { Profile } from "@shared/schema"; // Import Profile type
+import { 
+  User, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  Heart, 
+  Home, 
+  DollarSign, 
+  Star, 
+  Calendar,
+  Camera,
+  Edit3,
+  Activity,
+  TrendingUp,
+  Eye,
+  MessageSquare
+} from "lucide-react";
+import type { Profile } from "@shared/schema";
 
 export default function ProfilePage() {
   const { user, supabase } = useAuth();
@@ -17,7 +36,7 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState(user?.email || "");
-  const [role, setRole] = useState<"buyer" | "seller">("buyer"); // State for user role
+  const [role, setRole] = useState<"buyer" | "seller">("buyer");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -48,7 +67,6 @@ export default function ProfilePage() {
       if (data) {
         setRole(data.role as "buyer" | "seller");
       } else {
-        // Profile doesn't exist, create it with default role
         const { error: createError } = await supabase
           .from('profiles')
           .insert({ id: user.id, role: 'buyer' });
@@ -100,7 +118,7 @@ export default function ProfilePage() {
   };
 
   const handleRoleChange = async (newRole: "buyer" | "seller") => {
-    const originalRole = role; // Store the current role
+    const originalRole = role;
     setLoading(true);
     try {
       const { error } = await supabase
@@ -119,7 +137,7 @@ export default function ProfilePage() {
       });
     } catch (error) {
       console.error("Error updating role:", error);
-      setRole(originalRole); // Revert to original role on error
+      setRole(originalRole);
       toast({
         title: "Error",
         description: "Failed to update role. Please try again.",
@@ -130,111 +148,343 @@ export default function ProfilePage() {
     }
   };
 
- // Function to format phone number as (XXX) XXX-XXXX
- const formatPhoneNumber = (value: string) => {
-   // Remove all non-digit characters
-   const digits = value.replace(/\D/g, '');
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 6) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    } else if (digits.length <= 10) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    } else {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+    }
+  };
 
-   // Apply formatting based on the number of digits
-   if (digits.length <= 3) {
-     return digits;
-   } else if (digits.length <= 6) {
-     return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-   } else if (digits.length <= 10) {
-     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-   } else {
-     // Truncate to 10 digits and format
-     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-   }
- };
-
- if (profileLoading) {
+  if (profileLoading) {
     return (
-      <div className="container mx-auto py-8 text-center">
-        <p>Loading profile...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ladybug mx-auto"></div>
+          <p className="text-lg text-gray-600">Loading your amazing profile...</p>
+        </div>
       </div>
     );
   }
 
+  const fullName = `${firstName} ${lastName}`.trim() || "Anonymous User";
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
+
+  // Mock stats - in a real app these would come from API
+  const stats = [
+    { label: "Properties Viewed", value: "24", icon: Eye, color: "text-blue-600" },
+    { label: "Favorites Saved", value: "8", icon: Heart, color: "text-red-500" },
+    { label: "Messages Sent", value: "12", icon: MessageSquare, color: "text-green-600" },
+    { label: "Profile Views", value: "156", icon: TrendingUp, color: "text-purple-600" }
+  ];
+
+  const recentActivities = [
+    { action: "Favorited", item: "Beautiful 3BR Home in Downtown", time: "2 hours ago", icon: Heart },
+    { action: "Viewed", item: "Luxury Condo with Ocean View", time: "5 hours ago", icon: Eye },
+    { action: "Contacted", item: "Modern Townhouse Seller", time: "1 day ago", icon: MessageSquare },
+    { action: "Updated", item: "Profile Information", time: "3 days ago", icon: User }
+  ];
+
   return (
-    <div className="container mx-auto py-8">
-      <Card className="max-w-lg mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Profile Settings</CardTitle>
-          <CardDescription>Manage your personal information and role.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="John"
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Doe"
-                />
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-ladybug to-purple-600 opacity-90"></div>
+        <div className="absolute inset-0 bg-black opacity-20"></div>
+        <div className="relative px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="relative inline-block">
+              <Avatar className="h-32 w-32 mx-auto border-4 border-white shadow-2xl">
+                <AvatarImage src={user?.user_metadata?.avatar_url} alt={fullName} />
+                <AvatarFallback className="text-3xl font-bold bg-white text-ladybug">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <button className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow">
+                <Camera className="h-4 w-4 text-gray-600" />
+              </button>
             </div>
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="john.doe@example.com"
-                readOnly={true}
-              />
-            </div>
-            <div>
-              <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
-                placeholder="(123) 456-7890"
-              />
-            </div>
-
-            {/* Role Selection */}
-            <div className="space-y-2">
-              <Label>Select Your Role</Label>
-              <RadioGroup
-                value={role}
-                onValueChange={handleRoleChange}
-                className="flex space-x-4"
-                disabled={loading}
+            <h1 className="mt-6 text-4xl font-bold text-white sm:text-5xl">
+              {fullName}
+            </h1>
+            <p className="mt-2 text-xl text-white/90">{email}</p>
+            <div className="mt-4 flex justify-center">
+              <Badge 
+                variant="secondary" 
+                className="bg-white/20 text-white border-white/30 text-lg px-4 py-2"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="buyer" id="role-buyer" />
-                  <Label htmlFor="role-buyer">Buyer</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="seller" id="role-seller" />
-                  <Label htmlFor="role-seller">Seller</Label>
-                </div>
-              </RadioGroup>
+                {role === "buyer" ? "🏠 Buyer" : "🏪 Seller"}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="relative -mt-16 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={index} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <CardContent className="p-6 text-center">
+                    <Icon className={`h-8 w-8 mx-auto mb-4 ${stat.color}`} />
+                    <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
+                    <div className="text-sm text-gray-600 mt-1">{stat.label}</div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <Tabs defaultValue="profile" className="space-y-8">
+            <div className="flex justify-center">
+              <TabsList className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg">
+                <TabsTrigger value="profile" className="data-[state=active]:bg-ladybug data-[state=active]:text-white">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="data-[state=active]:bg-ladybug data-[state=active]:text-white">
+                  <Activity className="h-4 w-4 mr-2" />
+                  Activity
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="data-[state=active]:bg-ladybug data-[state=active]:text-white">
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Settings
+                </TabsTrigger>
+              </TabsList>
             </div>
 
-            <Button type="submit" className="ladybug-primary w-full" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Personal Information */}
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <User className="h-5 w-5 text-ladybug" />
+                      <span>Personal Information</span>
+                    </CardTitle>
+                    <CardDescription>Your basic details and contact information</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <form onSubmit={handleUpdateProfile} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="firstName" className="flex items-center space-x-2">
+                            <User className="h-4 w-4" />
+                            <span>First Name</span>
+                          </Label>
+                          <Input
+                            id="firstName"
+                            type="text"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="John"
+                            className="mt-2"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName" className="flex items-center space-x-2">
+                            <User className="h-4 w-4" />
+                            <span>Last Name</span>
+                          </Label>
+                          <Input
+                            id="lastName"
+                            type="text"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            placeholder="Doe"
+                            className="mt-2"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="email" className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4" />
+                          <span>Email Address</span>
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="john.doe@example.com"
+                          readOnly={true}
+                          className="mt-2 bg-gray-50"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phoneNumber" className="flex items-center space-x-2">
+                          <Phone className="h-4 w-4" />
+                          <span>Phone Number</span>
+                        </Label>
+                        <Input
+                          id="phoneNumber"
+                          type="tel"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
+                          placeholder="(123) 456-7890"
+                          className="mt-2"
+                        />
+                      </div>
+                      <Button type="submit" className="ladybug-primary w-full" disabled={loading}>
+                        {loading ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                {/* Role & Preferences */}
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Star className="h-5 w-5 text-ladybug" />
+                      <span>Role & Preferences</span>
+                    </CardTitle>
+                    <CardDescription>Choose your role and customize your experience</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium">I am a:</Label>
+                      <RadioGroup
+                        value={role}
+                        onValueChange={handleRoleChange}
+                        className="space-y-3"
+                        disabled={loading}
+                      >
+                        <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <RadioGroupItem value="buyer" id="role-buyer" />
+                          <Label htmlFor="role-buyer" className="flex items-center space-x-2 cursor-pointer">
+                            <Home className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <div className="font-medium">Buyer</div>
+                              <div className="text-sm text-gray-500">Looking for properties to purchase</div>
+                            </div>
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <RadioGroupItem value="seller" id="role-seller" />
+                          <Label htmlFor="role-seller" className="flex items-center space-x-2 cursor-pointer">
+                            <DollarSign className="h-5 w-5 text-green-600" />
+                            <div>
+                              <div className="font-medium">Seller</div>
+                              <div className="text-sm text-gray-500">Selling properties</div>
+                            </div>
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Activity Tab */}
+            <TabsContent value="activity" className="space-y-8">
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Activity className="h-5 w-5 text-ladybug" />
+                    <span>Recent Activity</span>
+                  </CardTitle>
+                  <CardDescription>Your latest actions and interactions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentActivities.map((activity, index) => {
+                      const Icon = activity.icon;
+                      return (
+                        <div key={index} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex-shrink-0">
+                            <Icon className="h-5 w-5 text-ladybug" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900">
+                              {activity.action} <span className="text-ladybug">{activity.item}</span>
+                            </p>
+                            <p className="text-sm text-gray-500 flex items-center">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {activity.time}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Notification Preferences</CardTitle>
+                    <CardDescription>Choose what notifications you'd like to receive</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Email Notifications</div>
+                        <div className="text-sm text-gray-500">Receive updates via email</div>
+                      </div>
+                      <input type="checkbox" className="toggle" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Property Alerts</div>
+                        <div className="text-sm text-gray-500">Get notified of new properties</div>
+                      </div>
+                      <input type="checkbox" className="toggle" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Price Updates</div>
+                        <div className="text-sm text-gray-500">Alerts for price changes</div>
+                      </div>
+                      <input type="checkbox" className="toggle" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Account Actions</CardTitle>
+                    <CardDescription>Manage your account settings</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Button variant="outline" className="w-full justify-start">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Change Location Preferences
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Edit3 className="h-4 w-4 mr-2" />
+                      Export Profile Data
+                    </Button>
+                    <Button variant="destructive" className="w-full justify-start">
+                      <User className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </div>
   );
 }

@@ -12,46 +12,28 @@ export default function SellerAdminPage() {
   const { user, role, supabase } = useAuth(); // Get supabase client from useAuth
   const { toast } = useToast();
 
+  const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
   const [squareFootage, setSquareFootage] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [lotSize, setLotSize] = useState("");
+  const [yearBuilt, setYearBuilt] = useState("");
+  const [features, setFeatures] = useState("");
+  const [hoaFees, setHoaFees] = useState("");
+  const [propertyTax, setPropertyTax] = useState("");
+  const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [existingListings, setExistingListings] = useState<Property[]>([]);
   const [fetchingListings, setFetchingListings] = useState(true);
 
 
-  // Fetch existing listings for the logged-in seller
-  useEffect(() => {
-    const fetchListings = async () => {
-      if (!user) {
-        setFetchingListings(false);
-        return;
-      }
-      setFetchingListings(true);
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('seller_id', user.id);
-
-      if (error) {
-        console.error("Error fetching listings:", error);
-        toast({
-          title: "Error fetching listings",
-          description: error.message,
-          variant: "destructive",
-        });
-        setExistingListings([]);
-      } else {
-        setExistingListings(data || []);
-      }
-      setFetchingListings(false);
-    };
-
-    fetchListings();
-  }, [user, supabase, toast]); // Re-run when user or supabase client changes
 
   if (!user) {
     return (
@@ -78,10 +60,12 @@ export default function SellerAdminPage() {
         return;
       }
       setFetchingListings(true);
+      
+      // Use direct Supabase query (required for Netlify compatibility)
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('user_id', user.id); // Corrected column name to user_id
+        .eq('userId', user.id);
 
       if (error) {
         console.error("Error fetching listings:", error);
@@ -94,11 +78,12 @@ export default function SellerAdminPage() {
       } else {
         setExistingListings(data || []);
       }
+      
       setFetchingListings(false);
     };
 
     fetchListings();
-  }, [user, supabase, toast]); // Re-run when user or supabase client changes
+  }, [user, supabase, toast]);
 
 
 
@@ -118,21 +103,67 @@ export default function SellerAdminPage() {
       return;
     }
 
-    // Insert property data into Supabase table
+    // Generate unique property ID
+    const propertyId = `PROP_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    const searchableId = `${city.toLowerCase().replace(/\s+/g, '-')}-${state.toLowerCase()}-${propertyId.toLowerCase()}`;
+
+    // Upload images if any
+    const imageUrls: string[] = [];
+    if (images.length > 0) {
+      for (const image of images) {
+        const fileName = `${Date.now()}_${image.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('property-images')
+          .upload(fileName, image);
+        
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          toast({
+            title: "Error uploading images",
+            description: uploadError.message,
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('property-images')
+          .getPublicUrl(fileName);
+        
+        imageUrls.push(publicUrl);
+      }
+    }
+
+    // Parse features from comma-separated string
+    const featuresArray = features.split(',').map(f => f.trim()).filter(f => f.length > 0);
+
+    // Insert property data directly into Supabase (required for Netlify compatibility)
     const propertyData = {
-      user_id: user.id, // Corrected column name to user_id
-      address: address,
-      description: description,
-      price: parseFloat(price), // Convert price to number
-      bedrooms: parseInt(bedrooms, 10), // Convert bedrooms to integer
-      bathrooms: parseInt(bathrooms, 10), // Convert bathrooms to integer
-      squareFootage: parseInt(squareFootage, 10), // Convert square footage to integer
-      images: [], // No photos will be uploaded
-      // Add other relevant fields as needed (e.g., city, state, zip, status)
+      propertyId,
+      searchableId,
+      title,
+      address,
+      city,
+      state,
+      zipCode,
+      description,
+      price: parseFloat(price),
+      bedrooms: parseInt(bedrooms, 10),
+      bathrooms: parseFloat(bathrooms),
+      squareFootage: parseInt(squareFootage, 10),
+      propertyType,
+      lotSize: lotSize || null,
+      yearBuilt: yearBuilt ? parseInt(yearBuilt, 10) : null,
+      features: featuresArray,
+      hoaFees: hoaFees ? parseFloat(hoaFees) : null,
+      propertyTax: propertyTax ? parseFloat(propertyTax) : null,
+      images: imageUrls,
+      userId: user.id,
     };
 
     const { data, error } = await supabase
-      .from('properties') // Assuming your table is named 'properties'
+      .from('properties')
       .insert([propertyData]);
 
     if (error) {
@@ -147,13 +178,39 @@ export default function SellerAdminPage() {
         title: "Property Listing Created",
         description: "Your property has been listed successfully!",
       });
-      // Optionally clear the form after successful submission
+      
+      // Clear the form after successful submission
+      setTitle("");
       setAddress("");
+      setCity("");
+      setState("");
+      setZipCode("");
       setDescription("");
       setPrice("");
       setBedrooms("");
       setBathrooms("");
       setSquareFootage("");
+      setPropertyType("");
+      setLotSize("");
+      setYearBuilt("");
+      setFeatures("");
+      setHoaFees("");
+      setPropertyTax("");
+      setImages([]);
+      // Reset file input
+      const fileInput = document.getElementById('images') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      
+      // Refresh listings
+      const { data: refreshData, error: refreshError } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('userId', user.id);
+      if (!refreshError) {
+        setExistingListings(refreshData || []);
+      }
     }
 
     setLoading(false);
@@ -169,7 +226,19 @@ export default function SellerAdminPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="title">Property Title *</Label>
+              <Input
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Beautiful Family Home"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="address">Address *</Label>
               <Input
                 id="address"
                 type="text"
@@ -179,8 +248,65 @@ export default function SellerAdminPage() {
                 required
               />
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="city">City *</Label>
+                <Input
+                  id="city"
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="San Francisco"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">State *</Label>
+                <Input
+                  id="state"
+                  type="text"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  placeholder="CA"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="zipCode">ZIP Code *</Label>
+                <Input
+                  id="zipCode"
+                  type="text"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  placeholder="94102"
+                  required
+                />
+              </div>
+            </div>
+            
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="propertyType">Property Type *</Label>
+              <select
+                id="propertyType"
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">Select Property Type</option>
+                <option value="single-family">Single Family Home</option>
+                <option value="condo">Condominium</option>
+                <option value="townhouse">Townhouse</option>
+                <option value="apartment">Apartment</option>
+                <option value="duplex">Duplex</option>
+                <option value="land">Land</option>
+                <option value="commercial">Commercial</option>
+              </select>
+            </div>
+            
+            <div>
+              <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
                 value={description}
@@ -189,9 +315,10 @@ export default function SellerAdminPage() {
                 required
               />
             </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">Price ($) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -202,7 +329,7 @@ export default function SellerAdminPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="bedrooms">Bedrooms</Label>
+                <Label htmlFor="bedrooms">Bedrooms *</Label>
                 <Input
                   id="bedrooms"
                   type="number"
@@ -213,30 +340,108 @@ export default function SellerAdminPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="bathrooms">Bathrooms</Label>
+                <Label htmlFor="bathrooms">Bathrooms *</Label>
                 <Input
                   id="bathrooms"
                   type="number"
+                  step="0.5"
                   value={bathrooms}
                   onChange={(e) => setBathrooms(e.target.value)}
-                  placeholder="2"
+                  placeholder="2.5"
                   required
                 />
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="squareFootage">Square Footage (sq ft) *</Label>
+                <Input
+                  id="squareFootage"
+                  type="number"
+                  value={squareFootage}
+                  onChange={(e) => setSquareFootage(e.target.value)}
+                  placeholder="1500"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="yearBuilt">Year Built</Label>
+                <Input
+                  id="yearBuilt"
+                  type="number"
+                  value={yearBuilt}
+                  onChange={(e) => setYearBuilt(e.target.value)}
+                  placeholder="2000"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="lotSize">Lot Size</Label>
+                <Input
+                  id="lotSize"
+                  type="text"
+                  value={lotSize}
+                  onChange={(e) => setLotSize(e.target.value)}
+                  placeholder="0.25 acres"
+                />
+              </div>
+              <div>
+                <Label htmlFor="hoaFees">HOA Fees ($/month)</Label>
+                <Input
+                  id="hoaFees"
+                  type="number"
+                  value={hoaFees}
+                  onChange={(e) => setHoaFees(e.target.value)}
+                  placeholder="150"
+                />
+              </div>
+            </div>
+            
             <div>
-              <Label htmlFor="squareFootage">Square Footage (sq ft)</Label>
+              <Label htmlFor="propertyTax">Annual Property Tax ($)</Label>
               <Input
-                id="squareFootage"
+                id="propertyTax"
                 type="number"
-                value={squareFootage}
-                onChange={(e) => setSquareFootage(e.target.value)}
-                placeholder="1500"
-                required
+                value={propertyTax}
+                onChange={(e) => setPropertyTax(e.target.value)}
+                placeholder="8500"
               />
             </div>
+            
+            <div>
+              <Label htmlFor="features">Features (comma-separated)</Label>
+              <Textarea
+                id="features"
+                value={features}
+                onChange={(e) => setFeatures(e.target.value)}
+                placeholder="Hardwood floors, Updated kitchen, Swimming pool, Garage"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="images">Property Images</Label>
+              <Input
+                id="images"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setImages(files);
+                }}
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              {images.length > 0 && (
+                <p className="text-sm text-gray-600 mt-1">
+                  {images.length} file(s) selected: {images.map(f => f.name).join(', ')}
+                </p>
+              )}
+            </div>
             <Button type="submit" className="ladybug-primary w-full" disabled={loading}>
-              {loading ? "Submitting..." : "Create Listing"}
+              {loading ? "Creating Listing..." : "Create Listing"}
             </Button>
           </form>
         </CardContent>
