@@ -107,17 +107,19 @@ Update `.env.local` with your Supabase credentials:
 
 ```bash
 # Supabase Configuration
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 DATABASE_URL=your_supabase_database_url
 
-# Server Configuration
+# Development
 NODE_ENV=development
 PORT=3000
-
-# Session Secret (generate a random string)
-SESSION_SECRET=your_random_session_secret
 ```
+
+**Important**: 
+- Use `VITE_` prefix for client-side environment variables
+- The Vite config automatically loads `.env.local` for local development
+- For production deployment (Netlify, Vercel, etc.), set these environment variables in your hosting platform's dashboard
 
 ### 4. Database Setup
 
@@ -147,15 +149,29 @@ npm run db:test-connection
 
 ### 5. Start the Development Server
 
+You have two options for running the development server:
+
+#### Option 1: Full Development Stack (Recommended)
+```bash
+npm run dev:full
+```
+
+This runs the `start-dev.sh` script which:
+- Starts the MCP (Model Context Protocol) server for AI chat functionality
+- Starts the main Express server with live logs
+- Handles process cleanup automatically
+- Shows colored console output for easy debugging
+
+#### Option 2: Basic Development Server
 ```bash
 npm run dev
 ```
 
-This single command starts both:
+This starts just the core application:
 - **Frontend Development Server** (Vite) - http://localhost:3000
 - **Backend API Server** (Express) - http://localhost:3000/api
 
-The application will automatically open in your browser at `http://localhost:3000`.
+**Note**: The full stack (`dev:full`) is recommended as it provides the complete development experience with all services running and proper log output for debugging.
 
 ## 📁 Project Structure
 
@@ -341,9 +357,11 @@ ladybug-real-estate/
 
 ```bash
 # Development
-npm run dev              # Start development server
+npm run dev:full        # Start full development stack (recommended)
+npm run dev             # Start basic development server
 npm run build           # Build for production
 npm run start           # Start production server
+npm run start:env       # Start production server with local env
 npm run check           # TypeScript type checking
 
 # Database Operations
@@ -376,14 +394,13 @@ For production deployment, set these environment variables:
 
 ```bash
 # Supabase (Required)
-SUPABASE_URL=your_production_supabase_url
-SUPABASE_ANON_KEY=your_production_supabase_anon_key
+VITE_SUPABASE_URL=your_production_supabase_url
+VITE_SUPABASE_ANON_KEY=your_production_supabase_anon_key
 DATABASE_URL=your_production_database_url
 
 # Server Configuration
 PORT=3000
 NODE_ENV=production
-SESSION_SECRET=your_secure_random_string
 
 # Optional External Services
 STRIPE_SECRET_KEY=your_stripe_key
