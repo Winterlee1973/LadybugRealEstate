@@ -62,7 +62,43 @@ export default function PropertyListings() {
       const { data, error } = await query;
       
       if (error) throw new Error(`Failed to fetch properties: ${error.message}`);
-      return data || [];
+      
+      // Transform the data to match the expected Property format
+      console.log('Raw property data:', data?.[0]); // Debug log
+      return (data || []).map(item => {
+        console.log('Transforming item:', item.property_id); // Debug log
+        return {
+        id: item.id,
+        propertyId: item.property_id,
+        searchableId: item.searchable_id,
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        address: item.address,
+        city: item.city,
+        state: item.state,
+        zipCode: item.zip_code,
+        bedrooms: item.bedrooms,
+        bathrooms: item.bathrooms,
+        squareFootage: item.square_footage,
+        lotSize: item.lot_size,
+        yearBuilt: item.year_built,
+        propertyType: item.property_type,
+        status: item.status,
+        images: item.images,
+        features: item.features,
+        hoaFees: item.hoa_fees,
+        propertyTax: item.property_tax,
+        agentName: item.agent_name,
+        agentPhone: item.agent_phone,
+        agentEmail: item.agent_email,
+        agentPhoto: item.agent_photo,
+        agentRating: item.agent_rating,
+        agentReviews: item.agent_reviews,
+        createdAt: item.created_at,
+        userId: item.user_id
+        };
+      });
     },
     enabled: true, // Always enable the query - let the backend handle empty results
   });

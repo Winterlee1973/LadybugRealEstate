@@ -25,6 +25,7 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property, isFavoritedProp }: PropertyCardProps) {
+  console.log('PropertyCard received property:', property.propertyId); // Debug log
   const { user } = useAuth(); // Get user from AuthContext
   const queryClient = useQueryClient(); // Initialize useQueryClient
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false); // State for AlertDialog
@@ -120,83 +121,87 @@ export default function PropertyCard({ property, isFavoritedProp }: PropertyCard
   const mainImage = property.images?.[0] || "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600";
 
   return (
-    <Link href={`/property/${property.propertyId}`}>
-      <Card className="bg-white hover:shadow-lg transition-shadow cursor-pointer">
-        <div className="relative">
+    <Card className="bg-white hover:shadow-lg transition-shadow">
+      <div className="relative">
+        <Link href={`/property/${property.propertyId}`}>
           <img
             src={mainImage}
             alt={property.title}
-            className="w-full h-48 object-cover rounded-t-lg"
+            className="w-full h-48 object-cover rounded-t-lg cursor-pointer"
           />
-          <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-3 right-3 w-8 h-8 bg-white/80 hover:bg-white rounded-full"
-                onClick={toggleFavoriteClick}
-              >
-                <Heart
-                  className={`h-4 w-4 ${
-                    isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
-                  }`}
-                />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure you want to Un-Favorite this property?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action will remove this property from your favorites list.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleToggleFavorite}>Un-Favorite</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <Badge className="absolute bottom-3 left-3 bg-green-500 text-white">
-            For Sale
-          </Badge>
-        </div>
+        </Link>
+        <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-3 right-3 w-8 h-8 bg-white/80 hover:bg-white rounded-full"
+              onClick={toggleFavoriteClick}
+            >
+              <Heart
+                className={`h-4 w-4 ${
+                  isFavorited ? "fill-red-heart text-red-heart" : "text-gray-600"
+                }`}
+              />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to Un-Favorite this property?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action will remove this property from your favorites list.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleToggleFavorite}>Un-Favorite</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        <Badge className="absolute bottom-3 left-3 bg-green-500 text-white">
+          For Sale
+        </Badge>
+      </div>
 
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-xl font-bold text-dark-gray">
-              {formatPrice(property.price)}
-            </h3>
-            <Badge variant="secondary" className="text-xs bg-gray-100">
-              <span className="text-ladybug">LB</span>{property.searchableId || 'N/A'}
-            </Badge>
+      <CardContent className="p-4">
+        <Link href={`/property/${property.propertyId}`}>
+          <div className="cursor-pointer">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-xl font-bold text-dark-gray">
+                {formatPrice(property.price)}
+              </h3>
+              <Badge variant="secondary" className="text-xs bg-gray-100">
+                <span className="text-ladybug">LB</span>{property.searchableId || 'N/A'}
+              </Badge>
+            </div>
+
+            <p className="text-medium-gray mb-3">
+              {[property.address, property.city, property.state, property.zipCode]
+                .filter(Boolean)
+                .join(', ') || 'N/A'}
+            </p>
+
+            <div className="flex items-center space-x-4 text-sm text-medium-gray mb-3">
+              <span className="flex items-center">
+                <Bed className="h-4 w-4 text-ladybug mr-1" />
+                {property.bedrooms ?? 'N/A'} Beds
+              </span>
+              <span className="flex items-center">
+                <Bath className="h-4 w-4 text-ladybug mr-1" />
+                {property.bathrooms ?? 'N/A'} Baths
+              </span>
+              <span className="flex items-center">
+                <Square className="h-4 w-4 text-ladybug mr-1" />
+                {(property.squareFootage ?? 0).toLocaleString()} sqft
+              </span>
+            </div>
+
+            <p className="text-sm text-medium-gray line-clamp-2">
+              {property.description || 'No description available.'}
+            </p>
           </div>
-
-          <p className="text-medium-gray mb-3">
-            {[property.address, property.city, property.state, property.zipCode]
-              .filter(Boolean)
-              .join(', ') || 'N/A'}
-          </p>
-
-          <div className="flex items-center space-x-4 text-sm text-medium-gray mb-3">
-            <span className="flex items-center">
-              <Bed className="h-4 w-4 text-ladybug mr-1" />
-              {property.bedrooms ?? 'N/A'} Beds
-            </span>
-            <span className="flex items-center">
-              <Bath className="h-4 w-4 text-ladybug mr-1" />
-              {property.bathrooms ?? 'N/A'} Baths
-            </span>
-            <span className="flex items-center">
-              <Square className="h-4 w-4 text-ladybug mr-1" />
-              {(property.squareFootage ?? 0).toLocaleString()} sqft
-            </span>
-          </div>
-
-          <p className="text-sm text-medium-gray line-clamp-2">
-            {property.description || 'No description available.'}
-          </p>
-        </CardContent>
-      </Card>
-    </Link>
+        </Link>
+      </CardContent>
+    </Card>
   );
 }
