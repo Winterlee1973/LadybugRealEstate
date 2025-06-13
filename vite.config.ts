@@ -5,9 +5,12 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 import dotenv from 'dotenv';
+import { existsSync } from 'fs';
 
-// Load environment variables from .env.local
-dotenv.config({ path: '.env.local' });
+// Load environment variables from .env.local if it exists (local development)
+if (existsSync('.env.local')) {
+  dotenv.config({ path: '.env.local' });
+}
 
 export default defineConfig({
   define: {

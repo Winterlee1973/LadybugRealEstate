@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "dev:full": "./start-dev.sh",
-    "build": "source .env.local && echo \"VITE_SUPABASE_URL: $VITE_SUPABASE_URL\" && echo \"VITE_SUPABASE_ANON_KEY: $VITE_SUPABASE_ANON_KEY\" && vite build && cp public/_redirects dist/_redirects",
+    "build": "vite build && cp public/_redirects dist/_redirects",
     "build:server": "tsc --project tsconfig.server.json",
-    "start": "source .env.local && vite preview",
+    "start": "vite preview",
+    "start:env": "source .env.local && vite preview",
     "start:local": "npm run dev:full",
     "start:prod": "NODE_ENV=production node dist/server/index.js",
     "mcp:install": "cd mcp-server && npm install",
