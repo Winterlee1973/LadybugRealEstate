@@ -11,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+  updateRole: (newRole: "buyer" | "seller") => Promise<{ error: any | null }>;
   supabase: typeof supabase;
 }
 
@@ -163,6 +164,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const updateRole = async (newRole: "buyer" | "seller") => {
+    if (!user?.id) {
+      return { error: new Error('User not authenticated') };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', user.id);
+
+      if (error) {
+        return { error };
+      }
+
+      // Update local role state immediately
+      setRole(newRole);
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const value = {
     user,
     session,
@@ -172,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     signInWithGoogle,
+    updateRole,
     supabase,
   };
 

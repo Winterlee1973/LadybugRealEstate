@@ -29,14 +29,13 @@ import {
 import type { Profile } from "@shared/schema";
 
 export default function ProfilePage() {
-  const { user, supabase } = useAuth();
+  const { user, supabase, role, updateRole } = useAuth();
   const { toast } = useToast();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState(user?.email || "");
-  const [role, setRole] = useState<"buyer" | "seller">("buyer");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -46,48 +45,10 @@ export default function ProfilePage() {
       setLastName(user.user_metadata?.last_name || "");
       setPhoneNumber(user.user_metadata?.phone_number || "");
       setEmail(user.email || "");
-      fetchUserProfile();
+      setProfileLoading(false);
     }
   }, [user]);
 
-  const fetchUserProfile = async () => {
-    if (!user?.id) return;
-    setProfileLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data) {
-        setRole(data.role as "buyer" | "seller");
-      } else {
-        const { error: createError } = await supabase
-          .from('profiles')
-          .insert({ id: user.id, role: 'buyer' });
-        
-        if (!createError) {
-          setRole('buyer');
-        } else {
-          throw createError;
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load user profile.",
-        variant: "destructive",
-      });
-    } finally {
-      setProfileLoading(false);
-    }
-  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,26 +79,20 @@ export default function ProfilePage() {
   };
 
   const handleRoleChange = async (newRole: "buyer" | "seller") => {
-    const originalRole = role;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', user?.id);
+      const { error } = await updateRole(newRole);
 
       if (error) {
         throw error;
       }
 
-      setRole(newRole);
       toast({
         title: "Role updated",
         description: `Your role has been set to ${newRole}.`,
       });
     } catch (error) {
       console.error("Error updating role:", error);
-      setRole(originalRole);
       toast({
         title: "Error",
         description: "Failed to update role. Please try again.",
@@ -161,7 +116,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (profileLoading) {
+  if (profileLoading || role === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -218,7 +173,7 @@ export default function ProfilePage() {
                 variant="secondary" 
                 className="bg-white/20 text-white border-white/30 text-lg px-4 py-2"
               >
-                {role === "buyer" ? "🏠 Buyer" : "🏪 Seller"}
+                {role === "buyer" ? "🏠 Buyer" : "🏪  Seller"}
               </Badge>
             </div>
           </div>
@@ -226,7 +181,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Stats Section */}
-      <div className="relative -mt-16 px-4 sm:px-6 lg:px-8">
+      <div className="relative mt-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat, index) => {
@@ -376,7 +331,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                           <RadioGroupItem value="seller" id="role-seller" />
-                          <Label htmlFor="role-seller" className="flex items-center space-x-2 cursor-pointer">
+                          <Label htmlFor="role-seller" className="flex items-center space-x-3 cursor-pointer">
                             <DollarSign className="h-5 w-5 text-green-600" />
                             <div>
                               <div className="font-medium">Seller</div>

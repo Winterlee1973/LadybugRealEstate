@@ -68,7 +68,7 @@ export default function Navigation() {
                   </Badge>
                 )}
                 {user && role === "seller" && (
-                  <Link href="/seller-admin" className="flex items-center space-x-2 text-dark-gray hover:text-ladybug transition-colors font-medium whitespace-nowrap">
+                  <Link href="/seller-admin" className="flex items-center space-x-3 text-dark-gray hover:text-ladybug transition-colors font-medium whitespace-nowrap">
                     <Tag className="h-5 w-5" />
                     <span>Seller Admin</span>
                   </Link>
@@ -102,7 +102,7 @@ export default function Navigation() {
                     {user && role === "seller" && (
                       <Link href="/seller-admin">
                         <DropdownMenuItem>
-                          <Tag className="mr-2 h-4 w-4" />
+                          <Tag className="mr-3 h-4 w-4" />
                           <span>Seller Admin</span>
                         </DropdownMenuItem>
                       </Link>
@@ -174,7 +174,7 @@ export default function Navigation() {
                         }`}
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <Tag className="h-5 w-5" />
+                        <Tag className="h-5 w-5 mr-1" />
                         <span>Seller Admin</span>
                       </Link>
                     )}
