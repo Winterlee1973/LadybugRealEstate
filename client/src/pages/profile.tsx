@@ -132,8 +132,6 @@ export default function ProfilePage() {
 
   // Mock stats - in a real app these would come from API
   const stats = [
-    { label: "Properties Viewed", value: "24", icon: Eye, color: "text-blue-600" },
-    { label: "Favorites Saved", value: "8", icon: Heart, color: "text-red-500" },
     { label: "Messages Sent", value: "12", icon: MessageSquare, color: "text-green-600" },
     { label: "Profile Views", value: "156", icon: TrendingUp, color: "text-purple-600" }
   ];
@@ -183,7 +181,7 @@ export default function ProfilePage() {
       {/* Stats Section */}
       <div className="relative mt-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 justify-center max-w-2xl mx-auto">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               return (
@@ -200,246 +198,129 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Profile Content */}
       <div className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <Tabs defaultValue="profile" className="space-y-8">
-            <div className="flex justify-center">
-              <TabsList className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg">
-                <TabsTrigger value="profile" className="data-[state=active]:bg-ladybug data-[state=active]:text-white">
-                  <User className="h-4 w-4 mr-2" />
-                  Profile
-                </TabsTrigger>
-                <TabsTrigger value="activity" className="data-[state=active]:bg-ladybug data-[state=active]:text-white">
-                  <Activity className="h-4 w-4 mr-2" />
-                  Activity
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="data-[state=active]:bg-ladybug data-[state=active]:text-white">
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Settings
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Personal Information */}
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <User className="h-5 w-5 text-ladybug" />
-                      <span>Personal Information</span>
-                    </CardTitle>
-                    <CardDescription>Your basic details and contact information</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <form onSubmit={handleUpdateProfile} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="firstName" className="flex items-center space-x-2">
-                            <User className="h-4 w-4" />
-                            <span>First Name</span>
-                          </Label>
-                          <Input
-                            id="firstName"
-                            type="text"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            placeholder="John"
-                            className="mt-2"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="lastName" className="flex items-center space-x-2">
-                            <User className="h-4 w-4" />
-                            <span>Last Name</span>
-                          </Label>
-                          <Input
-                            id="lastName"
-                            type="text"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            placeholder="Doe"
-                            className="mt-2"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="email" className="flex items-center space-x-2">
-                          <Mail className="h-4 w-4" />
-                          <span>Email Address</span>
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="john.doe@example.com"
-                          readOnly={true}
-                          className="mt-2 bg-gray-50"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phoneNumber" className="flex items-center space-x-2">
-                          <Phone className="h-4 w-4" />
-                          <span>Phone Number</span>
-                        </Label>
-                        <Input
-                          id="phoneNumber"
-                          type="tel"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
-                          placeholder="(123) 456-7890"
-                          className="mt-2"
-                        />
-                      </div>
-                      <Button type="submit" className="ladybug-primary w-full" disabled={loading}>
-                        {loading ? "Saving..." : "Save Changes"}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-
-                {/* Role & Preferences */}
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Star className="h-5 w-5 text-ladybug" />
-                      <span>Role & Preferences</span>
-                    </CardTitle>
-                    <CardDescription>Choose your role and customize your experience</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <Label className="text-base font-medium">I am a:</Label>
-                      <RadioGroup
-                        value={role}
-                        onValueChange={handleRoleChange}
-                        className="space-y-3"
-                        disabled={loading}
-                      >
-                        <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <RadioGroupItem value="buyer" id="role-buyer" />
-                          <Label htmlFor="role-buyer" className="flex items-center space-x-2 cursor-pointer">
-                            <Home className="h-5 w-5 text-blue-600" />
-                            <div>
-                              <div className="font-medium">Buyer</div>
-                              <div className="text-sm text-gray-500">Looking for properties to purchase</div>
-                            </div>
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <RadioGroupItem value="seller" id="role-seller" />
-                          <Label htmlFor="role-seller" className="flex items-center space-x-3 cursor-pointer">
-                            <DollarSign className="h-5 w-5 text-green-600" />
-                            <div>
-                              <div className="font-medium">Seller</div>
-                              <div className="text-sm text-gray-500">Selling properties</div>
-                            </div>
-                          </Label>
-                        </div>
-                      </RadioGroup>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Personal Information */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <User className="h-5 w-5 text-ladybug" />
+                  <span>Personal Information</span>
+                </CardTitle>
+                <CardDescription>Your basic details and contact information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName" className="flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>First Name</span>
+                      </Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="John"
+                        className="mt-2"
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Activity Tab */}
-            <TabsContent value="activity" className="space-y-8">
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Activity className="h-5 w-5 text-ladybug" />
-                    <span>Recent Activity</span>
-                  </CardTitle>
-                  <CardDescription>Your latest actions and interactions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentActivities.map((activity, index) => {
-                      const Icon = activity.icon;
-                      return (
-                        <div key={index} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="flex-shrink-0">
-                            <Icon className="h-5 w-5 text-ladybug" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900">
-                              {activity.action} <span className="text-ladybug">{activity.item}</span>
-                            </p>
-                            <p className="text-sm text-gray-500 flex items-center">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {activity.time}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <div>
+                      <Label htmlFor="lastName" className="flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>Last Name</span>
+                      </Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="Doe"
+                        className="mt-2"
+                      />
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <div>
+                    <Label htmlFor="email" className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Email Address</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="john.doe@example.com"
+                      readOnly={true}
+                      className="mt-2 bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phoneNumber" className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4" />
+                      <span>Phone Number</span>
+                    </Label>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
+                      placeholder="(123) 456-7890"
+                      className="mt-2"
+                    />
+                  </div>
+                  <Button type="submit" className="ladybug-primary w-full" disabled={loading}>
+                    {loading ? "Saving..." : "Save Changes"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
 
-            {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle>Notification Preferences</CardTitle>
-                    <CardDescription>Choose what notifications you'd like to receive</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
+            {/* Role & Preferences */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Star className="h-5 w-5 text-ladybug" />
+                  <span>Role & Preferences</span>
+                </CardTitle>
+                <CardDescription>Choose your role and customize your experience</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">I am a:</Label>
+                  <RadioGroup
+                    value={role}
+                    onValueChange={handleRoleChange}
+                    className="space-y-3"
+                    disabled={loading}
+                  >
+                    <Label htmlFor="role-buyer" className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer w-full block">
+                      <RadioGroupItem value="buyer" id="role-buyer" />
+                      <Home className="h-5 w-5 text-blue-600" />
                       <div>
-                        <div className="font-medium">Email Notifications</div>
-                        <div className="text-sm text-gray-500">Receive updates via email</div>
+                        <div className="font-medium">Buyer</div>
+                        <div className="text-sm text-gray-500">Looking for properties to purchase</div>
                       </div>
-                      <input type="checkbox" className="toggle" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
+                    </Label>
+                    <Label htmlFor="role-seller" className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer w-full block">
+                      <RadioGroupItem value="seller" id="role-seller" />
+                      <DollarSign className="h-5 w-5 text-green-600" />
                       <div>
-                        <div className="font-medium">Property Alerts</div>
-                        <div className="text-sm text-gray-500">Get notified of new properties</div>
+                        <div className="font-medium">Seller</div>
+                        <div className="text-sm text-gray-500">Selling properties</div>
                       </div>
-                      <input type="checkbox" className="toggle" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">Price Updates</div>
-                        <div className="text-sm text-gray-500">Alerts for price changes</div>
-                      </div>
-                      <input type="checkbox" className="toggle" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle>Account Actions</CardTitle>
-                    <CardDescription>Manage your account settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Button variant="outline" className="w-full justify-start">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Change Location Preferences
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      Export Profile Data
-                    </Button>
-                    <Button variant="destructive" className="w-full justify-start">
-                      <User className="h-4 w-4 mr-2" />
-                      Delete Account
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
+                    </Label>
+                  </RadioGroup>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
+
     </div>
   );
 }
