@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +38,8 @@ export default function ProfilePage() {
   const [email, setEmail] = useState(user?.email || "");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -103,6 +105,60 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image under 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+    const ext = file.name.split('.').pop();
+    const path = `${user.id}/avatar_${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('user-uploads')
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast({
+        title: "Upload failed",
+        description: uploadError.message,
+        variant: "destructive",
+      });
+      setUploadingAvatar(false);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from('user-uploads')
+      .getPublicUrl(path);
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      data: { avatar_url: data.publicUrl },
+    });
+
+    if (updateError) {
+      toast({
+        title: "Error updating profile",
+        description: updateError.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Avatar updated",
+        description: "Your profile photo has been updated.",
+      });
+    }
+
+    setUploadingAvatar(false);
+  };
+
   const formatPhoneNumber = (value: string) => {
     const digits = value.replace(/\D/g, '');
     if (digits.length <= 3) {
@@ -158,9 +214,21 @@ export default function ProfilePage() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <button className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow"
+                disabled={uploadingAvatar}
+              >
                 <Camera className="h-4 w-4 text-gray-600" />
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
             </div>
             <h1 className="mt-6 text-4xl font-bold text-white sm:text-5xl">
               {fullName}
