@@ -26,6 +26,44 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+export async function uploadImage(file: File, userId: string): Promise<string | null> {
+  if (file.size > MAX_FILE_SIZE) {
+    alert("File size exceeds 10MB");
+    return null;
+  }
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}-${Date.now()}.${fileExt}`;
+  const filePath = `${fileName}`;
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('user-uploads')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error("Error uploading image:", error);
+      alert(`Error uploading image: ${error.message}`);
+      return null;
+    }
+
+    const publicUrl = supabase.storage
+      .from('user-uploads')
+      .getPublicUrl(filePath).data.publicUrl;
+
+    return publicUrl;
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    alert("Error uploading image");
+    return null;
+  }
+}
+
 export type Database = {
   public: {
     Tables: {

@@ -27,6 +27,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import type { Profile } from "@shared/schema";
+import { uploadImage } from "@/lib/supabase";
 
 export default function ProfilePage() {
   const { user, supabase, role, updateRole } = useAuth();
@@ -152,16 +153,55 @@ export default function ProfilePage() {
         <div className="relative px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <div className="relative inline-block">
-              <Avatar className="h-32 w-32 mx-auto border-4 border-white shadow-2xl">
+              <Avatar 
+                className="h-32 w-32 mx-auto border-4 border-white shadow-2xl cursor-pointer hover:opacity-90 transition-opacity" 
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+              >
                 <AvatarImage src={user?.user_metadata?.avatar_url} alt={fullName} />
                 <AvatarFallback className="text-3xl font-bold bg-white text-ladybug">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <button className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => document.getElementById('avatar-upload')?.click()}>
                 <Camera className="h-4 w-4 text-gray-600" />
-              </button>
+              </div>
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file && user) {
+                    const imageUrl = await uploadImage(file, user.id);
+                    if (imageUrl) {
+                      // Update user metadata with the new avatar URL
+                      const { error } = await supabase.auth.updateUser({
+                        data: {
+                          avatar_url: imageUrl,
+                        },
+                      });
+
+                      if (error) {
+                        toast({
+                          title: "Error updating avatar",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      } else {
+                        toast({
+                          title: "Avatar updated successfully!",
+                          description: "Your profile avatar has been updated.",
+                        });
+                        // Force a refresh of the user object to get the new avatar URL
+                        await supabase.auth.refreshSession()
+                      }
+                    }
+                  }
+                }}
+              />
             </div>
+            
             <h1 className="mt-6 text-4xl font-bold text-white sm:text-5xl">
               {fullName}
             </h1>
