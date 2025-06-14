@@ -1,0 +1,38 @@
+# AI Context for Ladybug Real Estate
+
+## Quick Architecture Reference
+- **Frontend**: React 18 + TypeScript + Tailwind CSS (client/)
+- **Backend**: Express.js + TypeScript (server/) 
+- **Database**: Supabase PostgreSQL with direct client calls
+- **Auth**: Supabase Auth with role-based permissions
+- **Storage**: Supabase Storage for file uploads
+
+## Critical Rules
+1. **NO API endpoints for CRUD** - Use direct Supabase client calls
+2. **Manual Supabase setup only** - No infrastructure scripts
+3. **TypeScript-first** - Strict typing throughout
+4. **Read before edit** - Always examine existing code patterns
+
+## Key Files
+- `shared/schema.ts` - All database types
+- `client/src/contexts/AuthContext.tsx` - Authentication
+- `client/src/lib/supabase.ts` - Database client + file uploads
+- `client/src/components/ui/` - Shadcn/ui components
+
+## Common Patterns
+```typescript
+// Auth check
+const { user, supabase, role } = useAuth();
+
+// Database operation  
+const { data, error } = await supabase.from('properties').select('*');
+
+// File upload
+const imageUrl = await uploadImage(file, user.id);
+```
+
+## User Roles
+- **buyer**: Default role, browse properties, save favorites
+- **seller**: Enhanced permissions, property management, dashboard access
+
+This is a real estate platform built for direct Supabase integration without traditional API middleware.
