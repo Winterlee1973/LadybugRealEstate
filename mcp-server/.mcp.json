@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "browser-console-server": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "./mcp-server/build/index.js"
+      ],
+      "env": {}
+    }
+  }
+}
