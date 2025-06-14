@@ -150,6 +150,7 @@ DATABASE_URL=your_supabase_database_url
 # Development
 NODE_ENV=development
 PORT=3000
+VITE_PORT=5173
 ```
 
 **Important**: 
@@ -204,7 +205,7 @@ npm run dev
 ```
 
 This starts just the core application:
-- **Frontend Development Server** (Vite) - http://localhost:3000
+- **Frontend Development Server** (Vite) - http://localhost:5173
 - **Backend API Server** (Express) - http://localhost:3000/api
 
 **Note**: The full stack (`dev:full`) is recommended as it provides the complete development experience with all services running and proper log output for debugging.
