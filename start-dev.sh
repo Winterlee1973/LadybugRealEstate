@@ -18,8 +18,14 @@ popd >/dev/null
 # --- Main App (Dev Mode) ----------------------------------
 echo "🛠  Starting main app in dev mode..."
 npm ci
-PORT="${PORT:-3000}" NODE_ENV=development npm run dev &
+
+# Start Vite dev server
+PORT=5173 NODE_ENV=development npx vite &
+VITE_PID=$!
+
+# Start Express server
+PORT=3000 NODE_ENV=development npm run dev &
 MAIN_PID=$!
 
-trap "echo '👋 Stopping'; kill $MCP_PID $MAIN_PID" SIGINT SIGTERM
+trap "echo '👋 Stopping'; kill $MCP_PID $VITE_PID $MAIN_PID" SIGINT SIGTERM
 wait
