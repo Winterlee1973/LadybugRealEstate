@@ -194,7 +194,9 @@ export default function ProfilePage() {
                           description: "Your profile avatar has been updated.",
                         });
                         // Force a refresh of the user object to get the new avatar URL
-                        await supabase.auth.refreshSession()
+                        await supabase.auth.refreshSession();
+                        // Trigger a re-render by forcing the page to reload user data
+                        window.location.reload();
                       }
                     }
                   }

@@ -1,25 +1,47 @@
 export function startMcp() {
   let ws: WebSocket | null = null;
+  let connectionAttempts = 0;
+  const maxAttempts = 3;
 
   function connect() {
+    if (ws && ws.readyState === WebSocket.CONNECTING) {
+      return;
+    }
+    
+    if (connectionAttempts >= maxAttempts) {
+      console.log('MCP logger: Max connection attempts reached, stopping');
+      return;
+    }
+    
     try {
-      ws = new WebSocket('ws://localhost:8765');
+      const wsUrl = window.location.protocol === 'https:' 
+        ? `wss://${window.location.host}/browser-events`
+        : `ws://${window.location.host}/browser-events`;
+      ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         console.log('Connected to MCP console logger');
+        connectionAttempts = 0; // Reset on successful connection
       };
 
       ws.onclose = () => {
         console.log('Disconnected from MCP console logger');
-        setTimeout(connect, 5000);
+        connectionAttempts++;
+        if (connectionAttempts < maxAttempts) {
+          setTimeout(connect, 5000);
+        }
       };
 
       ws.onerror = (error) => {
         console.log('MCP logger connection error:', error);
+        connectionAttempts++;
       };
     } catch (error) {
       console.log('Failed to connect to MCP logger:', error);
-      setTimeout(connect, 5000);
+      connectionAttempts++;
+      if (connectionAttempts < maxAttempts) {
+        setTimeout(connect, 5000);
+      }
     }
   }
 
@@ -37,9 +59,9 @@ export function startMcp() {
     debug: console.debug,
   };
 
-  ['log', 'info', 'warn', 'error', 'debug'].forEach((level) => {
-    console[level as keyof Console] = (...args: any[]) => {
-      originalConsole[level as keyof Console].apply(console, args);
+  (['log', 'info', 'warn', 'error', 'debug'] as const).forEach((level) => {
+    (console as any)[level] = (...args: any[]) => {
+      (originalConsole as any)[level].apply(console, args);
       send({
         type: 'console',
         level,
@@ -97,13 +119,13 @@ export function startMcp() {
     const originalOpen = xhr.open;
     const originalSend = xhr.send;
 
-    xhr.open = function (m: string, u: string, ...args: any[]) {
+    xhr.open = function (m: string, u: string, async: boolean = true, username?: string | null, password?: string | null) {
       method = m;
       url = u;
-      return originalOpen.apply(this, [m, u, ...args]);
+      return originalOpen.apply(this, [m, u, async, username, password]);
     };
 
-    xhr.send = function (...args: any[]) {
+    xhr.send = function (body?: Document | XMLHttpRequestBodyInit | null) {
       startTime = Date.now();
 
       xhr.addEventListener('loadend', function () {
@@ -118,7 +140,7 @@ export function startMcp() {
         });
       });
 
-      return originalSend.apply(this, args);
+      return originalSend.apply(this, [body]);
     };
 
     return xhr;

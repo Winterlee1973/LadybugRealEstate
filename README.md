@@ -160,29 +160,38 @@ VITE_PORT=5173
 
 ### 4. Database Setup
 
-#### Initialize Supabase Tables
+#### Important: Manual Supabase Setup Required
 
-Run the database migration to create all necessary tables:
+**This project requires manual setup in the Supabase dashboard at supabase.com.** We do NOT make database structure changes, storage policies, or authentication setup through scripts or API calls.
+
+**Required Manual Setup:**
+
+1. **Go to supabase.com → Your Project → Database**
+   - Create tables using the SQL editor
+   - Set up Row Level Security (RLS) policies
+   - Configure authentication settings
+
+2. **Go to supabase.com → Your Project → Storage**
+   - Create storage buckets manually
+   - Set up storage policies through the dashboard
+   - Configure public/private access permissions
+
+3. **Go to supabase.com → Your Project → Authentication**
+   - Configure authentication providers
+   - Set up redirect URLs
+   - Configure email templates
+
+#### Initialize Database Tables
+
+After manual Supabase setup, you can run local scripts to populate data:
 
 ```bash
-npm run db:migrate
+npm run db:migrate  # Only for local schema management
+npm run db:seed     # Populate with sample data
+npm run db:test-connection  # Verify connection
 ```
 
-#### Seed Sample Data
-
-Populate the database with sample properties and data:
-
-```bash
-npm run db:seed
-```
-
-#### Test Database Connection
-
-Verify your database connection:
-
-```bash
-npm run db:test-connection
-```
+**Note:** The migration script is for local development only. All production database changes must be done manually in the Supabase dashboard.
 
 ### 5. Start the Development Server
 
@@ -456,12 +465,17 @@ The application is ready for deployment on:
 
 ### Supabase Production Setup
 
-1. Create a production Supabase project
-2. Run migrations: `npm run db:migrate`
-3. Seed initial data: `npm run db:seed`
-4. Configure Row Level Security policies
-5. Set up authentication providers
-6. Update environment variables
+1. Create a production Supabase project at supabase.com
+2. **Manually configure in Supabase dashboard:**
+   - Create database tables using SQL editor
+   - Set up Row Level Security (RLS) policies
+   - Configure storage buckets and policies
+   - Set up authentication providers
+   - Configure redirect URLs and email templates
+3. After manual setup, seed initial data: `npm run db:seed`
+4. Update environment variables in your hosting platform
+
+**Important:** All database structure, storage, and authentication changes must be done manually in the Supabase dashboard, not through scripts.
 
 ## 🧪 Testing & Sample Data
 
